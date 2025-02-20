@@ -39,8 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       },
       errorMessage => {
-    }
-  ).catch(err => {
-    console.error(`Unable to start scanning, error: ${err}`);
+        console.log(`QR Code no longer in front of camera. Error: ${errorMessage}`);
+      }
+    ).catch(err => {
+      console.error(`Unable to start scanning, error: ${err}`);
+    });
   });
 });
