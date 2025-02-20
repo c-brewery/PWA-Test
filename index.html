@@ -30,6 +30,9 @@
     <main>
         Hi there, this is the content area.
     </main>
+    <input type="file" id="jsonFileInput" accept=".json" style="display:none;" />
+    <button id="uploadButton">Upload JSON File</button>
+    <pre id="jsonOutput"></pre>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -42,5 +45,6 @@
             });
         }
     </script>
+    <script src="script.js"></script>
 </body>
 </html>
