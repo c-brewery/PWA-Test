@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "html5-qrcode": "^2.0.9"
-    // ...other dependencies...
   },
   "author": "",
   "license": "ISC"
