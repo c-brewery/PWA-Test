@@ -1,11 +1,16 @@
 {
   "name": "pwa-test",
   "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "build": "your-build-command",
-    "start": "your-start-command"
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "html5-qrcode": "^2.0.9",
+    "html5-qrcode": "^2.0.9"
+    // ...other dependencies...
   },
+  "author": "",
+  "license": "ISC"
 }
