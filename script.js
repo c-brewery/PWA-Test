@@ -1,3 +1,4 @@
+import { Html5Qrcode } from "html5-qrcode";
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('uploadButton').addEventListener('click', () => {

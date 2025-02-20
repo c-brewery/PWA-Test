@@ -1,0 +1,11 @@
+{
+  "name": "pwa-test",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "your-build-command",
+    "start": "your-start-command"
+  },
+  "dependencies": {
+    "html5-qrcode": "^2.0.9",
+  },
+}
