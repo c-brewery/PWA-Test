@@ -20,6 +20,7 @@
     <meta name="msapplication-TileImage" content="icon-144x144.png">
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="theme-color" content="#000000">
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
 </head>
 <body>
     <nav>
@@ -33,6 +34,9 @@
     <input type="file" id="jsonFileInput" accept=".json" style="display:none;" />
     <button id="uploadButton">Upload JSON File</button>
     <pre id="jsonOutput"></pre>
+    <button id="startQrScannerButton">Scan QR Code</button>
+    <div id="qrScanner" style="width: 300px; height: 300px;"></div>
+    <pre id="qrCodeResult"></pre>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

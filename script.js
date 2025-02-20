@@ -18,3 +18,23 @@ document.getElementById('jsonFileInput').addEventListener('change', event => {
     reader.readAsText(file);
   }
 });
+
+document.getElementById('startQrScannerButton').addEventListener('click', () => {
+  const qrScanner = new Html5Qrcode("qrScanner");
+  qrScanner.start(
+    { facingMode: "environment" },
+    {
+      fps: 10,
+      qrbox: 250
+    },
+    qrCodeMessage => {
+      document.getElementById('qrCodeResult').textContent = qrCodeMessage;
+      qrScanner.stop();
+    },
+    errorMessage => {
+      console.log(`QR Code no longer in front of camera. Error: ${errorMessage}`);
+    }
+  ).catch(err => {
+    console.error(`Unable to start scanning, error: ${err}`);
+  });
+});
