@@ -1,3 +1,5 @@
+import { Html5Qrcode } from "html5-qrcode";
+
 document.getElementById('uploadButton').addEventListener('click', () => {
   document.getElementById('jsonFileInput').click();
 });
@@ -29,7 +31,11 @@ document.getElementById('startQrScannerButton').addEventListener('click', () => 
     },
     qrCodeMessage => {
       document.getElementById('qrCodeResult').textContent = qrCodeMessage;
-      qrScanner.stop();
+      qrScanner.stop().then(() => {
+        console.log("QR Code scanning stopped.");
+      }).catch(err => {
+        console.error("Failed to stop scanning.", err);
+      });
     },
     errorMessage => {
       console.log(`QR Code no longer in front of camera. Error: ${errorMessage}`);
