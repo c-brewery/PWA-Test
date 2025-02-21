@@ -1,6 +1,11 @@
 import { Html5Qrcode } from "html5-qrcode";
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (!Html5Qrcode) {
+    console.error('Html5Qrcode is not loaded');
+    return;
+  }
+
   document.getElementById('uploadButton').addEventListener('click', () => {
     document.getElementById('jsonFileInput').click();
   });

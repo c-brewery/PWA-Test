@@ -48,7 +48,15 @@
             });
         }
     </script>
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
-    <script src="script.js"></script>
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js" onerror="console.error('Failed to load html5-qrcode script');"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const script = document.createElement('script');
+            script.src = 'script.js';
+            script.onload = () => console.log('script.js loaded successfully');
+            script.onerror = () => console.error('Failed to load script.js');
+            document.body.appendChild(script);
+        });
+    </script>
 </body>
 </html>
