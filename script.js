@@ -1,4 +1,4 @@
-import { Html5Qrcode } from "html5-qrcode";
+import { Html5Qrcode } from "./node_modules/html5-qrcode/minified/html5-qrcode.min.js";
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!Html5Qrcode) {
