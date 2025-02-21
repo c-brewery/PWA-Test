@@ -13,7 +13,7 @@
             navigator.serviceWorker.register('./service-worker.js');
         };
     </script>
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="PWA Example">
     <link rel="apple-touch-icon" href="icon-152x152.png">
@@ -49,6 +49,7 @@
         }
     </script>
     <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js" onerror="console.error('Failed to load html5-qrcode script');"></script>
+    <script src="script.js" type="module"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const script = document.createElement('script');
