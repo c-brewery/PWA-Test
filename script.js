@@ -169,4 +169,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     modal.style.display = 'block';
   }
+
+  // Rearrange elements
+  const buttonContainer = document.createElement('div');
+  buttonContainer.id = 'buttonContainer';
+  buttonContainer.style.display = 'flex';
+  buttonContainer.style.justifyContent = 'space-between';
+  buttonContainer.appendChild(document.getElementById('uploadButton'));
+  buttonContainer.appendChild(document.getElementById('reopenScannerButton'));
+  buttonContainer.appendChild(document.getElementById('downloadJsonButton'));
+
+  const readerContainer = document.createElement('div');
+  readerContainer.id = 'readerContainer';
+  readerContainer.appendChild(document.getElementById('reader'));
+
+  const qrCodeResultContainer = document.createElement('div');
+  qrCodeResultContainer.id = 'qrCodeResultContainer';
+  qrCodeResultContainer.appendChild(document.getElementById('qrCodeResult'));
+  qrCodeResultContainer.appendChild(document.getElementById('jsonOutput'));
+
+  document.body.insertBefore(buttonContainer, document.body.firstChild);
+  document.body.appendChild(readerContainer);
+  document.body.appendChild(qrCodeResultContainer);
 });
