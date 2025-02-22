@@ -116,6 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const increaseButton = document.createElement('button');
         increaseButton.type = 'button';
         increaseButton.textContent = '+';
+        increaseButton.style.width = '30px';
+        increaseButton.style.height = '30px';
         increaseButton.onclick = () => {
           input.value = parseInt(input.value) + 1;
         };
@@ -124,6 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const decreaseButton = document.createElement('button');
         decreaseButton.type = 'button';
         decreaseButton.textContent = '-';
+        decreaseButton.style.width = '30px';
+        decreaseButton.style.height = '30px';
         decreaseButton.onclick = () => {
           input.value = parseInt(input.value) - 1;
         };
