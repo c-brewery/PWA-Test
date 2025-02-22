@@ -1,126 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PWA Test</title>
-    <link rel="manifest" href="/manifest.json">
-    <link rel="stylesheet" href="assets/styles/style.css">
-    <link rel="icon" href="assets/icons/icon-192x192.png">
-    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
-    <script>
-        if('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js');
-        };
-    </script>
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="PWA Example">
-    <link rel="apple-touch-icon" href="icon-152x152.png">
-    <meta name="msapplication-TileImage" content="icon-144x144.png">
-    <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="theme-color" content="#000000">
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <style>
-        .menu {
-            position: absolute;
-            top: 50px;
-            right: 10px;
-            background-color: white;
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: none;
-            flex-direction: column;
-            z-index: 1000; /* Ensure the menu is on top */
-        }
-        .menu button {
-            padding: 10px;
-            border: none;
-            background: none;
-            text-align: left;
-            width: 100%;
-        }
-        .menu button:hover {
-            background-color: #f0f0f0;
-        }
-        #hamburgerMenuButton {
-            font-size: 24px;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PWA Test</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="assets/styles/style.css">
+  <link rel="icon" href="assets/icons/icon-192x192.png">
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js');
+    };
+  </script>
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="PWA Example">
+  <link rel="apple-touch-icon" href="icon-152x152.png">
+  <meta name="msapplication-TileImage" content="icon-144x144.png">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="theme-color" content="#000000">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    .menu {
+      position: absolute;
+      top: 50px;
+      right: 10px;
+      background-color: white;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      display: none;
+      flex-direction: column;
+      z-index: 1000; /* Ensure the menu is on top */
+    }
+    .menu button {
+      padding: 10px;
+      border: none;
+      background: none;
+      text-align: left;
+      width: 100%;
+    }
+    .menu button:hover {
+      background-color: #f0f0f0;
+    }
+    #hamburgerMenuButton {
+      font-size: 24px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <button id="hamburgerMenuButton" title="Menu">☰</button>
-        <div id="hamburgerMenu" class="menu">
-            <button id="uploadButton" title="Upload JSON File">Upload JSON File</button>
-            <button id="downloadJsonButton" title="Download Edited JSON">Download Edited JSON</button>
-        </div>
-        <button id="reopenScannerButton" style="display:none;">Reopen QR Code Scanner</button>
-    </header>
-    <main>
-        <div id="content">
-            <input type="file" id="jsonFileInput" accept=".json" style="display:none;" />
-            <div id="reader" style="width:100%; max-width:500px;"></div>
-            <div id="qrCodeResult"></div>
-            <pre id="jsonOutput"></pre>
-        </div>
-    </main>
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <form id="editForm">
-                <!-- Form fields will be dynamically generated -->
-            </form>
-            <button type="button" id="saveChangesButton">Save Changes</button>
-        </div>
+  <header>
+    <button id="hamburgerMenuButton" title="Menu">☰</button>
+    <div id="hamburgerMenu" class="menu">
+      <button id="uploadButton" title="Upload JSON File">Upload JSON File</button>
+      <button id="downloadJsonButton" title="Download Edited JSON">Download Edited JSON</button>
     </div>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    }, err => {
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
-            });
+    <button id="reopenScannerButton" style="display:none;">Reopen QR Code Scanner</button>
+  </header>
+  <main>
+    <div id="content">
+      <input type="file" id="jsonFileInput" accept=".json" style="display:none;" />
+      <div id="reader" style="width:100%; max-width:500px;"></div>
+      <div id="qrCodeResult"></div>
+      <pre id="jsonOutput"></pre>
+    </div>
+  </main>
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <form id="editForm">
+        <!-- Form fields will be dynamically generated -->
+      </form>
+      <button type="button" id="saveChangesButton">Save Changes</button>
+    </div>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }, err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
+  </script>
+  <script src="script.js" type="module"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const script = document.createElement('script');
+      script.src = 'script.js';
+      script.onload = () => console.log('script.js loaded successfully');
+      script.onerror = () => console.error('Failed to load script.js');
+      document.body.appendChild(script);
+    });
+  </script>
+  <script src="/node_modules/html5-qrcode/html5-qrcode.min.js"></script>
+  <script src="main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const hamburgerMenuButton = document.getElementById('hamburgerMenuButton');
+      const hamburgerMenu = document.getElementById('hamburgerMenu');
+
+      hamburgerMenuButton.addEventListener('click', () => {
+        const currentDisplay = window.getComputedStyle(hamburgerMenu).display;
+        hamburgerMenu.style.display = currentDisplay === 'none' ? 'flex' : 'none';
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!hamburgerMenu.contains(event.target) && event.target !== hamburgerMenuButton) {
+          hamburgerMenu.style.display = 'none';
         }
-    </script>
-    <script src="script.js" type="module"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const script = document.createElement('script');
-            script.src = 'script.js';
-            script.onload = () => console.log('script.js loaded successfully');
-            script.onerror = () => console.error('Failed to load script.js');
-            document.body.appendChild(script);
+      });
+
+      const menuButtons = hamburgerMenu.querySelectorAll('button');
+      menuButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          hamburgerMenu.style.display = 'none';
         });
-    </script>
-    <script src="/node_modules/html5-qrcode/html5-qrcode.min.js"></script>
-    <script src="main.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const hamburgerMenuButton = document.getElementById('hamburgerMenuButton');
-            const hamburgerMenu = document.getElementById('hamburgerMenu');
-
-            hamburgerMenuButton.addEventListener('click', () => {
-                hamburgerMenu.style.display = hamburgerMenu.style.display === 'none' ? 'flex' : 'none';
-            });
-
-            document.addEventListener('click', (event) => {
-                if (!hamburgerMenu.contains(event.target) && event.target !== hamburgerMenuButton) {
-                    hamburgerMenu.style.display = 'none';
-                }
-            });
-
-            const menuButtons = hamburgerMenu.querySelectorAll('button');
-            menuButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    hamburgerMenu.style.display = 'none';
-                });
-            });
-        });
-    </script>
+      });
+    });
+  </script>
 </body>
 </html>

@@ -43,7 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const reopenScannerButton = document.getElementById('reopenScannerButton');
 
   hamburgerMenuButton.addEventListener('click', () => {
-    hamburgerMenu.style.display = hamburgerMenu.style.display === 'none' ? 'flex' : 'none';
+    const currentDisplay = window.getComputedStyle(hamburgerMenu).display;
+    hamburgerMenu.style.display = currentDisplay === 'none' ? 'flex' : 'none';
   });
 
   document.addEventListener('click', (event) => {
