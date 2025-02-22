@@ -38,16 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('jsonOutput').textContent = `Last loaded file: ${lastLoadedFile}\n${JSON.stringify(inventoryData, null, 2)}`;
   }
 
-  const menuButton = document.getElementById('menuButton');
-  const menu = document.getElementById('menu');
-  const reopenScannerButton = document.getElementById('reopenScannerButton');
-
-  menuButton.addEventListener('click', () => {
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-  });
-
   const hamburgerMenuButton = document.getElementById('hamburgerMenuButton');
   const hamburgerMenu = document.getElementById('hamburgerMenu');
+  const reopenScannerButton = document.getElementById('reopenScannerButton');
 
   hamburgerMenuButton.addEventListener('click', () => {
     hamburgerMenu.style.display = hamburgerMenu.style.display === 'none' ? 'flex' : 'none';
