@@ -66,6 +66,16 @@ document.addEventListener('DOMContentLoaded', () => {
     startQrScanner();
   });
 
+  document.getElementById('downloadJsonButton').addEventListener('click', () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ inventory: inventoryData }, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "edited_inventory.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  });
+
   function showModal(data) {
     const modal = document.getElementById('modal');
     const form = document.getElementById('editForm');
@@ -94,6 +104,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (event.target == modal) {
         modal.style.display = 'none';
       }
+    };
+
+    document.getElementById('saveChangesButton').onclick = () => {
+      const formData = new FormData(form);
+      for (const [key, value] of formData.entries()) {
+        data[key] = value;
+      }
+      document.getElementById('jsonOutput').textContent = JSON.stringify(inventoryData, null, 2);
+      modal.style.display = 'none';
     };
 
     modal.style.display = 'block';
