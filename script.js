@@ -1,5 +1,3 @@
-import { Html5Qrcode } from "./node_modules/html5-qrcode/html5-qrcode.min.js";
-
 document.addEventListener('DOMContentLoaded', () => {
   if (!Html5Qrcode) {
     console.error('Html5Qrcode is not loaded');
@@ -27,27 +25,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.getElementById('startQrScannerButton').addEventListener('click', () => {
-    const qrScanner = new Html5Qrcode("qrScanner");
-    qrScanner.start(
-      { facingMode: "environment" },
-      {
-        fps: 10,
-        qrbox: 250
-      },
-      qrCodeMessage => {
-        document.getElementById('qrCodeResult').textContent = qrCodeMessage;
-        qrScanner.stop().then(() => {
-          console.log("QR Code scanning stopped.");
-        }).catch(err => {
-          console.error("Failed to stop scanning.", err);
-        });
-      },
-      errorMessage => {
-        console.log(`QR Code no longer in front of camera. Error: ${errorMessage}`);
-      }
-    ).catch(err => {
-      console.error(`Unable to start scanning, error: ${err}`);
-    });
-  });
+  // Remove the "Scan QR Code" button and its related code
+  // document.getElementById('startQrScannerButton').addEventListener('click', () => {
+  //   const qrScanner = new Html5Qrcode("qrScanner");
+  //   qrScanner.start(
+  //     { facingMode: "environment" },
+  //     {
+  //       fps: 10,
+  //       qrbox: 250
+  //     },
+  //     qrCodeMessage => {
+  //       document.getElementById('qrCodeResult').textContent = qrCodeMessage;
+  //       qrScanner.stop().then(() => {
+  //         console.log("QR Code scanning stopped.");
+  //       }).catch(err => {
+  //         console.error("Failed to stop scanning.", err);
+  //       });
+  //     },
+  //     errorMessage => {
+  //       console.log(`QR Code no longer in front of camera. Error: ${errorMessage}`);
+  //     }
+  //   ).catch(err => {
+  //     console.error(`Unable to start scanning, error: ${err}`);
+  //   });
+  // });
 });
