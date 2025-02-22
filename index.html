@@ -24,9 +24,12 @@
 </head>
 <body>
     <header>
-        <button id="uploadButton">Upload JSON File</button>
-        <button id="reopenScannerButton">Reopen QR Code Scanner</button>
-        <button id="downloadJsonButton">Download Edited JSON</button>
+        <button id="menuButton">☰ Menu</button>
+        <div id="menu" class="menu" style="display:none;">
+            <button id="uploadButton">Upload JSON File</button>
+            <button id="downloadJsonButton">Download Edited JSON</button>
+        </div>
+        <button id="reopenScannerButton" style="display:none;">Reopen QR Code Scanner</button>
     </header>
     <main>
         <div id="content">

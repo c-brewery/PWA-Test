@@ -38,6 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('jsonOutput').textContent = `Last loaded file: ${lastLoadedFile}\n${JSON.stringify(inventoryData, null, 2)}`;
   }
 
+  const menuButton = document.getElementById('menuButton');
+  const menu = document.getElementById('menu');
+  const reopenScannerButton = document.getElementById('reopenScannerButton');
+
+  menuButton.addEventListener('click', () => {
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  });
+
   const qrScanner = new Html5Qrcode("reader");
 
   function startQrScanner() {
@@ -52,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         qrScanner.stop().then(() => {
           console.log("QR Code scanning stopped.");
           document.getElementById('reader').style.display = 'none'; // Hide the camera image
+          reopenScannerButton.style.display = 'block'; // Show the reopen button
           const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
           if (scannedData) {
             showModal(scannedData);
@@ -72,8 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   startQrScanner();
 
-  document.getElementById('reopenScannerButton').addEventListener('click', () => {
+  reopenScannerButton.addEventListener('click', () => {
     document.getElementById('reader').style.display = 'block'; // Show the camera image
+    reopenScannerButton.style.display = 'none'; // Hide the reopen button
     startQrScanner();
   });
 
@@ -175,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
   buttonContainer.id = 'buttonContainer';
   buttonContainer.style.display = 'flex';
   buttonContainer.style.justifyContent = 'space-between';
+  buttonContainer.appendChild(document.getElementById('menuButton'));
   buttonContainer.appendChild(document.getElementById('uploadButton'));
   buttonContainer.appendChild(document.getElementById('reopenScannerButton'));
   buttonContainer.appendChild(document.getElementById('downloadJsonButton'));
