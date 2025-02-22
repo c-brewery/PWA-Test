@@ -52,7 +52,9 @@
       display: none;
     }
     .dropdown {
-      position: relative;
+      position: absolute;
+      top: 0;
+      left: 0;
       display: inline-block;
     }
     .dropdown-content {
@@ -97,11 +99,15 @@
 </head>
 <body>
   <header>
-    <div class="dropdown">
-      <button onclick="toggleDropdown()" class="dropbtn">Menu</button>
-      <div id="myDropdown" class="dropdown-content">
+    <div class="navbar">
+      <div class="dropdown">
+      <button class="dropbtn">Menu
+        <i class="fa fa-caret-down"></i>
+      </button>
+      <div class="dropdown-content">
         <a href="#" id="uploadButton" title="Upload JSON File">Load JSON</a>
         <a href="#" id="downloadJsonButton" title="Download Edited JSON">Save JSON</a>
+      </div>
       </div>
     </div>
     <button id="reopenScannerButton" style="display:none;">Reopen QR Code Scanner</button>
