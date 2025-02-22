@@ -50,7 +50,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const hamburgerMenu = document.getElementById('hamburgerMenu');
 
   hamburgerMenuButton.addEventListener('click', () => {
-    hamburgerMenu.style.display = hamburgerMenu.style.display === 'none' ? 'block' : 'none';
+    hamburgerMenu.style.display = hamburgerMenu.style.display === 'none' ? 'flex' : 'none';
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!hamburgerMenu.contains(event.target) && event.target !== hamburgerMenuButton) {
+      hamburgerMenu.style.display = 'none';
+    }
   });
 
   const qrScanner = new Html5Qrcode("reader");
