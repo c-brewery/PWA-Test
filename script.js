@@ -84,15 +84,26 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const key in data) {
       const value = data[key];
       const input = document.createElement('input');
-      input.type = 'text';
+      input.type = key.includes('date') || key.includes('timestamp') ? 'datetime-local' : 'text';
       input.name = key;
-      input.value = value;
+      input.value = key.includes('date') || key.includes('timestamp') ? new Date(value).toISOString().slice(0, 16) : value;
       input.disabled = ['qr_code', 'last_updated', 'expected_stock'].includes(key);
       const label = document.createElement('label');
       label.textContent = key;
       form.appendChild(label);
       form.appendChild(input);
     }
+
+    const timestampButton = document.createElement('button');
+    timestampButton.type = 'button';
+    timestampButton.textContent = 'Current Timestamp';
+    timestampButton.onclick = () => {
+      const now = new Date().toISOString().slice(0, 16);
+      form.querySelectorAll('input[type="datetime-local"]').forEach(input => {
+        input.value = now;
+      });
+    };
+    form.appendChild(timestampButton);
 
     const closeButton = document.querySelector('.close');
     closeButton.onclick = () => {
@@ -108,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('saveChangesButton').onclick = () => {
       const formData = new FormData(form);
       for (const [key, value] of formData.entries()) {
-        data[key] = value;
+        data[key] = key.includes('date') || key.includes('timestamp') ? new Date(value).toISOString() : value;
       }
       document.getElementById('jsonOutput').textContent = JSON.stringify(inventoryData, null, 2);
       modal.style.display = 'none';

@@ -88,7 +88,7 @@ button:hover {
   font-weight: bold;
 }
 
-.close:hover,
+close:hover,
 .close:focus {
   color: black;
   text-decoration: none;
@@ -105,13 +105,15 @@ form label {
   font-weight: bold;
 }
 
-form input[type="text"] {
+form input[type="text"],
+form input[type="datetime-local"] {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
 }
 
-#saveChangesButton {
+#saveChangesButton,
+button[type="button"] {
   background-color: #007aff;
   border: none;
   color: white;
@@ -126,6 +128,7 @@ form input[type="text"] {
   transition: background-color 0.3s ease;
 }
 
-#saveChangesButton:hover {
+#saveChangesButton:hover,
+button[type="button"]:hover {
   background-color: #005bb5;
 }
