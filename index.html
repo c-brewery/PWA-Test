@@ -24,7 +24,7 @@
 </head>
 <body>
   <header>
-    <div class="navbar">
+    <div class="navbar" id="myNavbar">
       <a href="#home">Home</a>
       <div class="dropdown">
         <button class="dropbtn">Menu 
@@ -35,6 +35,7 @@
           <a href="#" id="downloadJsonButton" title="Download Edited JSON">Save JSON</a>
         </div>
       </div> 
+      <a href="javascript:void(0);" class="icon" onclick="toggleNavbar()">&#9776;</a>
     </div>
     <button id="reopenScannerButton" style="display:none;">Reopen QR Code Scanner</button>
   </header>
@@ -79,5 +80,15 @@
   </script>
   <script src="/node_modules/html5-qrcode/html5-qrcode.min.js"></script>
   <script src="main.js"></script>
+  <script>
+    function toggleNavbar() {
+      var x = document.getElementById("myNavbar");
+      if (x.className === "navbar") {
+        x.className += " responsive";
+      } else {
+        x.className = "navbar";
+      }
+    }
+  </script>
 </body>
 </html>

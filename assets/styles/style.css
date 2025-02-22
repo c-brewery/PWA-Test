@@ -364,3 +364,38 @@ button[type="button"] {
 .navbar .dropdown:hover .dropdown-content {
   display: block;
 }
+
+/* Media query for mobile devices */
+@media (max-width: 600px) {
+  .navbar a, .navbar .dropdown .dropbtn {
+    display: none; /* Hide all links and dropdown buttons */
+  }
+  .navbar a.icon {
+    float: right;
+    display: block; /* Show the menu icon */
+  }
+  .navbar.responsive {
+    position: relative;
+  }
+  .navbar.responsive .icon {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+  .navbar.responsive a {
+    float: none;
+    display: block;
+    text-align: left;
+  }
+  .navbar.responsive .dropdown {
+    float: none;
+  }
+  .navbar.responsive .dropdown-content {
+    position: relative;
+  }
+  .navbar.responsive .dropdown .dropbtn {
+    display: block;
+    width: 100%;
+    text-align: left;
+  }
+}
