@@ -26,25 +26,35 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const qrScanner = new Html5Qrcode("reader");
-  qrScanner.start(
-    { facingMode: "environment" },
-    {
-      fps: 10,
-      qrbox: 250
-    },
-    qrCodeMessage => {
-      document.getElementById('qrCodeResult').textContent = qrCodeMessage;
-      qrScanner.stop().then(() => {
-        console.log("QR Code scanning stopped.");
-        document.getElementById('reader').style.display = 'none'; // Hide the camera image
-      }).catch(err => {
-        console.error("Failed to stop scanning.", err);
-      });
-    },
-    errorMessage => {
-      console.log(`QR Code no longer in front of camera. Error: ${errorMessage}`);
-    }
-  ).catch(err => {
-    console.error(`Unable to start scanning, error: ${err}`);
+
+  function startQrScanner() {
+    qrScanner.start(
+      { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: 250
+      },
+      qrCodeMessage => {
+        document.getElementById('qrCodeResult').textContent = qrCodeMessage;
+        qrScanner.stop().then(() => {
+          console.log("QR Code scanning stopped.");
+          document.getElementById('reader').style.display = 'none'; // Hide the camera image
+        }).catch(err => {
+          console.error("Failed to stop scanning.", err);
+        });
+      },
+      errorMessage => {
+        console.log(`QR Code no longer in front of camera. Error: ${errorMessage}`);
+      }
+    ).catch(err => {
+      console.error(`Unable to start scanning, error: ${err}`);
+    });
+  }
+
+  startQrScanner();
+
+  document.getElementById('reopenScannerButton').addEventListener('click', () => {
+    document.getElementById('reader').style.display = 'block'; // Show the camera image
+    startQrScanner();
   });
 });
