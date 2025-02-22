@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let inventoryData = [];
   const lastLoadedFileKey = 'lastLoadedFile';
+  const cachedDataKey = 'cachedInventoryData';
 
   document.getElementById('uploadButton').addEventListener('click', () => {
     document.getElementById('jsonFileInput').click();
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const jsonContent = e.target.result;
         try {
           inventoryData = JSON.parse(jsonContent).inventory;
+          localStorage.setItem(cachedDataKey, JSON.stringify(inventoryData));
           document.getElementById('jsonOutput').textContent = JSON.stringify(inventoryData, null, 2);
         } catch (error) {
           document.getElementById('jsonOutput').textContent = 'Invalid JSON file';
@@ -30,8 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const lastLoadedFile = localStorage.getItem(lastLoadedFileKey);
-  if (lastLoadedFile) {
-    document.getElementById('jsonOutput').textContent = `Last loaded file: ${lastLoadedFile}`;
+  const cachedData = localStorage.getItem(cachedDataKey);
+  if (lastLoadedFile && cachedData) {
+    inventoryData = JSON.parse(cachedData);
+    document.getElementById('jsonOutput').textContent = `Last loaded file: ${lastLoadedFile}\n${JSON.stringify(inventoryData, null, 2)}`;
   }
 
   const qrScanner = new Html5Qrcode("reader");
@@ -110,14 +114,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const inputContainer = document.createElement('div');
       inputContainer.className = 'input-container';
+      inputContainer.style.display = 'flex';
+      inputContainer.style.alignItems = 'center';
       inputContainer.appendChild(input);
+      input.style.flex = '1';
 
       if (key === 'current_stock') {
         const increaseButton = document.createElement('button');
         increaseButton.type = 'button';
         increaseButton.textContent = '+';
-        increaseButton.style.width = '30px';
+        increaseButton.style.width = '25%';
         increaseButton.style.height = '30px';
+        increaseButton.style.marginLeft = '5px';
         increaseButton.onclick = () => {
           input.value = parseInt(input.value) + 1;
         };
@@ -126,8 +134,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const decreaseButton = document.createElement('button');
         decreaseButton.type = 'button';
         decreaseButton.textContent = '-';
-        decreaseButton.style.width = '30px';
+        decreaseButton.style.width = '25%';
         decreaseButton.style.height = '30px';
+        decreaseButton.style.marginLeft = '5px';
         decreaseButton.onclick = () => {
           input.value = parseInt(input.value) - 1;
         };
@@ -153,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
       for (const [key, value] of formData.entries()) {
         data[key] = key.includes('date') || key.includes('timestamp') ? new Date(value).toISOString() : (typeof data[key] === 'number' ? parseInt(value) : value);
       }
+      localStorage.setItem(cachedDataKey, JSON.stringify(inventoryData));
       document.getElementById('jsonOutput').textContent = JSON.stringify(inventoryData, null, 2);
       modal.style.display = 'none';
     };
