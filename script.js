@@ -46,6 +46,13 @@ document.addEventListener('DOMContentLoaded', () => {
     menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
   });
 
+  const hamburgerMenuButton = document.getElementById('hamburgerMenuButton');
+  const hamburgerMenu = document.getElementById('hamburgerMenu');
+
+  hamburgerMenuButton.addEventListener('click', () => {
+    hamburgerMenu.style.display = hamburgerMenu.style.display === 'none' ? 'block' : 'none';
+  });
+
   const qrScanner = new Html5Qrcode("reader");
 
   function startQrScanner() {
@@ -189,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
   buttonContainer.appendChild(document.getElementById('uploadButton'));
   buttonContainer.appendChild(document.getElementById('reopenScannerButton'));
   buttonContainer.appendChild(document.getElementById('downloadJsonButton'));
+  buttonContainer.appendChild(document.getElementById('hamburgerMenuButton'));
 
   const readerContainer = document.createElement('div');
   readerContainer.id = 'readerContainer';
