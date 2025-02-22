@@ -47,15 +47,16 @@
       font-size: 24px;
       cursor: pointer;
     }
+    /* Remove the hamburger menu styles */
+    #hamburgerMenuButton, #hamburgerMenu {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <header>
-    <button id="hamburgerMenuButton" title="Menu">☰</button>
-    <div id="hamburgerMenu" class="menu">
-      <button id="uploadButton" title="Upload JSON File">Upload JSON File</button>
-      <button id="downloadJsonButton" title="Download Edited JSON">Download Edited JSON</button>
-    </div>
+    <button id="uploadButton" title="Upload JSON File">Upload JSON File</button>
+    <button id="downloadJsonButton" title="Download Edited JSON">Download Edited JSON</button>
     <button id="reopenScannerButton" style="display:none;">Reopen QR Code Scanner</button>
   </header>
   <main>
@@ -99,29 +100,5 @@
   </script>
   <script src="/node_modules/html5-qrcode/html5-qrcode.min.js"></script>
   <script src="main.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const hamburgerMenuButton = document.getElementById('hamburgerMenuButton');
-      const hamburgerMenu = document.getElementById('hamburgerMenu');
-
-      hamburgerMenuButton.addEventListener('click', () => {
-        const currentDisplay = window.getComputedStyle(hamburgerMenu).display;
-        hamburgerMenu.style.display = currentDisplay === 'none' ? 'flex' : 'none';
-      });
-
-      document.addEventListener('click', (event) => {
-        if (!hamburgerMenu.contains(event.target) && event.target !== hamburgerMenuButton) {
-          hamburgerMenu.style.display = 'none';
-        }
-      });
-
-      const menuButtons = hamburgerMenu.querySelectorAll('button');
-      menuButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          hamburgerMenu.style.display = 'none';
-        });
-      });
-    });
-  </script>
 </body>
 </html>

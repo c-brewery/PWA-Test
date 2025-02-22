@@ -38,20 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('jsonOutput').textContent = `Last loaded file: ${lastLoadedFile}\n${JSON.stringify(inventoryData, null, 2)}`;
   }
 
-  const hamburgerMenuButton = document.getElementById('hamburgerMenuButton');
-  const hamburgerMenu = document.getElementById('hamburgerMenu');
   const reopenScannerButton = document.getElementById('reopenScannerButton');
-
-  hamburgerMenuButton.addEventListener('click', () => {
-    const currentDisplay = window.getComputedStyle(hamburgerMenu).display;
-    hamburgerMenu.style.display = currentDisplay === 'none' ? 'flex' : 'none';
-  });
-
-  document.addEventListener('click', (event) => {
-    if (!hamburgerMenu.contains(event.target) && event.target !== hamburgerMenuButton) {
-      hamburgerMenu.style.display = 'none';
-    }
-  });
 
   const qrScanner = new Html5Qrcode("reader");
 
@@ -192,7 +179,8 @@ document.addEventListener('DOMContentLoaded', () => {
   buttonContainer.id = 'buttonContainer';
   buttonContainer.style.display = 'flex';
   buttonContainer.style.justifyContent = 'space-between';
-  buttonContainer.appendChild(document.getElementById('hamburgerMenuButton'));
+  buttonContainer.appendChild(document.getElementById('uploadButton'));
+  buttonContainer.appendChild(document.getElementById('downloadJsonButton'));
 
   const readerContainer = document.createElement('div');
   readerContainer.id = 'readerContainer';
