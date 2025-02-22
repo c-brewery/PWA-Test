@@ -191,10 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
   buttonContainer.id = 'buttonContainer';
   buttonContainer.style.display = 'flex';
   buttonContainer.style.justifyContent = 'space-between';
-  buttonContainer.appendChild(document.getElementById('menuButton'));
-  buttonContainer.appendChild(document.getElementById('uploadButton'));
-  buttonContainer.appendChild(document.getElementById('reopenScannerButton'));
-  buttonContainer.appendChild(document.getElementById('downloadJsonButton'));
   buttonContainer.appendChild(document.getElementById('hamburgerMenuButton'));
 
   const readerContainer = document.createElement('div');
