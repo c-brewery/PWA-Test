@@ -107,16 +107,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const label = document.createElement('label');
       label.textContent = key;
       form.appendChild(label);
-      form.appendChild(input);
 
-      if (typeof value === 'number') {
+      const inputContainer = document.createElement('div');
+      inputContainer.className = 'input-container';
+      inputContainer.appendChild(input);
+
+      if (key === 'current_stock') {
         const increaseButton = document.createElement('button');
         increaseButton.type = 'button';
         increaseButton.textContent = '+';
         increaseButton.onclick = () => {
           input.value = parseInt(input.value) + 1;
         };
-        form.appendChild(increaseButton);
+        inputContainer.appendChild(increaseButton);
 
         const decreaseButton = document.createElement('button');
         decreaseButton.type = 'button';
@@ -124,8 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
         decreaseButton.onclick = () => {
           input.value = parseInt(input.value) - 1;
         };
-        form.appendChild(decreaseButton);
+        inputContainer.appendChild(decreaseButton);
       }
+
+      form.appendChild(inputContainer);
     }
 
     const closeButton = document.querySelector('.close');
