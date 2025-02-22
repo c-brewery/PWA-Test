@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('qrCodeResult').textContent = qrCodeMessage;
       qrScanner.stop().then(() => {
         console.log("QR Code scanning stopped.");
-        window.close(); // Close the breakout window
+        document.getElementById('reader').style.display = 'none'; // Hide the camera image
       }).catch(err => {
         console.error("Failed to stop scanning.", err);
       });
