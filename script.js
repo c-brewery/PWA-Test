@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   let inventoryData = [];
+  const lastLoadedFileKey = 'lastLoadedFile';
 
   document.getElementById('uploadButton').addEventListener('click', () => {
     document.getElementById('jsonFileInput').click();
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('jsonFileInput').addEventListener('change', event => {
     const file = event.target.files[0];
     if (file) {
+      localStorage.setItem(lastLoadedFileKey, file.name);
       const reader = new FileReader();
       reader.onload = function(e) {
         const jsonContent = e.target.result;
@@ -26,6 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
       reader.readAsText(file);
     }
   });
+
+  const lastLoadedFile = localStorage.getItem(lastLoadedFileKey);
+  if (lastLoadedFile) {
+    document.getElementById('jsonOutput').textContent = `Last loaded file: ${lastLoadedFile}`;
+  }
 
   const qrScanner = new Html5Qrcode("reader");
 
@@ -86,24 +93,22 @@ document.addEventListener('DOMContentLoaded', () => {
       const input = document.createElement('input');
       input.type = key.includes('date') || key.includes('timestamp') ? 'datetime-local' : 'text';
       input.name = key;
-      input.value = key.includes('date') || key.includes('timestamp') ? new Date(value).toISOString().slice(0, 16) : value;
+      if (key.includes('date') || key.includes('timestamp')) {
+        const dateValue = new Date(value);
+        if (isNaN(dateValue.getTime()) || key === 'last_updated') {
+          input.value = new Date().toISOString().slice(0, 16);
+        } else {
+          input.value = dateValue.toISOString().slice(0, 16);
+        }
+      } else {
+        input.value = value;
+      }
       input.disabled = ['qr_code', 'last_updated', 'expected_stock'].includes(key);
       const label = document.createElement('label');
       label.textContent = key;
       form.appendChild(label);
       form.appendChild(input);
     }
-
-    const timestampButton = document.createElement('button');
-    timestampButton.type = 'button';
-    timestampButton.textContent = 'Current Timestamp';
-    timestampButton.onclick = () => {
-      const now = new Date().toISOString().slice(0, 16);
-      form.querySelectorAll('input[type="datetime-local"]').forEach(input => {
-        input.value = now;
-      });
-    };
-    form.appendChild(timestampButton);
 
     const closeButton = document.querySelector('.close');
     closeButton.onclick = () => {
