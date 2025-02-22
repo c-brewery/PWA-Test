@@ -8,11 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const lastLoadedFileKey = 'lastLoadedFile';
   const cachedDataKey = 'cachedInventoryData';
 
-  document.getElementById('uploadButton').addEventListener('click', () => {
-    document.getElementById('jsonFileInput').click();
-  });
-
-  document.getElementById('jsonFileInput').addEventListener('change', event => {
+  function handleFileUpload(event) {
     const file = event.target.files[0];
     if (file) {
       localStorage.setItem(lastLoadedFileKey, file.name);
@@ -29,20 +25,19 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       reader.readAsText(file);
     }
-  });
-
-  const lastLoadedFile = localStorage.getItem(lastLoadedFileKey);
-  const cachedData = localStorage.getItem(cachedDataKey);
-  if (lastLoadedFile && cachedData) {
-    inventoryData = JSON.parse(cachedData);
-    document.getElementById('jsonOutput').textContent = `Last loaded file: ${lastLoadedFile}\n${JSON.stringify(inventoryData, null, 2)}`;
   }
 
-  const reopenScannerButton = document.getElementById('reopenScannerButton');
-
-  const qrScanner = new Html5Qrcode("reader");
+  function loadCachedData() {
+    const lastLoadedFile = localStorage.getItem(lastLoadedFileKey);
+    const cachedData = localStorage.getItem(cachedDataKey);
+    if (lastLoadedFile && cachedData) {
+      inventoryData = JSON.parse(cachedData);
+      document.getElementById('jsonOutput').textContent = `Last loaded file: ${lastLoadedFile}\n${JSON.stringify(inventoryData, null, 2)}`;
+    }
+  }
 
   function startQrScanner() {
+    const qrScanner = new Html5Qrcode("reader");
     qrScanner.start(
       { facingMode: "environment" },
       {
@@ -53,8 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('qrCodeResult').textContent = qrCodeMessage;
         qrScanner.stop().then(() => {
           console.log("QR Code scanning stopped.");
-          document.getElementById('reader').style.display = 'none'; // Hide the camera image
-          reopenScannerButton.style.display = 'block'; // Show the reopen button
+          document.getElementById('reader').style.display = 'none';
+          document.getElementById('reopenScannerButton').style.display = 'block';
           const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
           if (scannedData) {
             showModal(scannedData);
@@ -73,24 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  startQrScanner();
-
-  reopenScannerButton.addEventListener('click', () => {
-    document.getElementById('reader').style.display = 'block'; // Show the camera image
-    reopenScannerButton.style.display = 'none'; // Hide the reopen button
-    startQrScanner();
-  });
-
-  document.getElementById('downloadJsonButton').addEventListener('click', () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ inventory: inventoryData }, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "edited_inventory.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-  });
-
   function showModal(data) {
     const modal = document.getElementById('modal');
     const form = document.getElementById('editForm');
@@ -103,11 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       input.name = key;
       if (key.includes('date') || key.includes('timestamp')) {
         const dateValue = new Date(value);
-        if (isNaN(dateValue.getTime()) || key === 'last_updated') {
-          input.value = new Date().toISOString().slice(0, 16);
-        } else {
-          input.value = dateValue.toISOString().slice(0, 16);
-        }
+        input.value = isNaN(dateValue.getTime()) || key === 'last_updated' ? new Date().toISOString().slice(0, 16) : dateValue.toISOString().slice(0, 16);
       } else {
         input.value = value;
       }
@@ -173,6 +146,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     modal.style.display = 'block';
   }
+
+  document.getElementById('uploadButton').addEventListener('click', () => {
+    document.getElementById('jsonFileInput').click();
+  });
+
+  document.getElementById('jsonFileInput').addEventListener('change', handleFileUpload);
+
+  document.getElementById('reopenScannerButton').addEventListener('click', () => {
+    document.getElementById('reader').style.display = 'block';
+    document.getElementById('reopenScannerButton').style.display = 'none';
+    startQrScanner();
+  });
+
+  document.getElementById('downloadJsonButton').addEventListener('click', () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ inventory: inventoryData }, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "edited_inventory.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  });
+
+  loadCachedData();
+  startQrScanner();
 
   // Rearrange elements
   const buttonContainer = document.createElement('div');
