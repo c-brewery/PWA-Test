@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  let inventoryData = [];
+
   document.getElementById('uploadButton').addEventListener('click', () => {
     document.getElementById('jsonFileInput').click();
   });
@@ -15,8 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
       reader.onload = function(e) {
         const jsonContent = e.target.result;
         try {
-          const jsonObject = JSON.parse(jsonContent);
-          document.getElementById('jsonOutput').textContent = JSON.stringify(jsonObject, null, 2);
+          inventoryData = JSON.parse(jsonContent).inventory;
+          document.getElementById('jsonOutput').textContent = JSON.stringify(inventoryData, null, 2);
         } catch (error) {
           document.getElementById('jsonOutput').textContent = 'Invalid JSON file';
         }
@@ -39,6 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
         qrScanner.stop().then(() => {
           console.log("QR Code scanning stopped.");
           document.getElementById('reader').style.display = 'none'; // Hide the camera image
+          const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
+          if (scannedData) {
+            showModal(scannedData);
+          } else {
+            alert('QR code not found in inventory');
+          }
         }).catch(err => {
           console.error("Failed to stop scanning.", err);
         });
@@ -57,4 +65,37 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('reader').style.display = 'block'; // Show the camera image
     startQrScanner();
   });
+
+  function showModal(data) {
+    const modal = document.getElementById('modal');
+    const form = document.getElementById('editForm');
+    form.innerHTML = '';
+
+    for (const key in data) {
+      const value = data[key];
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.name = key;
+      input.value = value;
+      input.disabled = ['qr_code', 'last_updated', 'expected_stock'].includes(key);
+      const label = document.createElement('label');
+      label.textContent = key;
+      form.appendChild(label);
+      form.appendChild(input);
+      form.appendChild(document.createElement('br'));
+    }
+
+    const closeButton = document.querySelector('.close');
+    closeButton.onclick = () => {
+      modal.style.display = 'none';
+    };
+
+    window.onclick = event => {
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+    };
+
+    modal.style.display = 'block';
+  }
 });

@@ -1,0 +1,27 @@
+{
+    "inventory": [
+      {
+        "qr_code": "123456789ABC",
+        "name": "Komponente A",
+        "description": "Elektronische Steuerungseinheit",
+        "category": "Elektronik",
+        "location": "Lagerraum 1",
+        "expected_stock": 50,
+        "current_stock": 45,
+        "stock_last_updated": "2025-02-22T12:30:00Z",
+        "last_updated": "2025-02-22T12:00:00Z"
+      },
+      {
+        "qr_code": "987654321XYZ",
+        "name": "Komponente B",
+        "description": "Mechanisches Bauteil",
+        "category": "Mechanik",
+        "location": "Lagerraum 2",
+        "expected_stock": 20,
+        "current_stock": 20,
+        "stock_last_updated": "2025-02-22T11:45:00Z",
+        "last_updated": "2025-02-22T12:00:00Z"
+      }
+    ]
+  }
+  
