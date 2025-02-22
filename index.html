@@ -51,12 +51,45 @@
     #hamburgerMenuButton, #hamburgerMenu {
       display: none;
     }
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+    .dropdown-content button {
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      width: 100%;
+      border: none;
+      background: none;
+      text-align: left;
+    }
+    .dropdown-content button:hover {
+      background-color: #f1f1f1;
+    }
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
   </style>
 </head>
 <body>
   <header>
-    <button id="uploadButton" title="Upload JSON File">Upload JSON File</button>
-    <button id="downloadJsonButton" title="Download Edited JSON">Download Edited JSON</button>
+    <div class="dropdown">
+      <button class="dropbtn">Menu</button>
+      <div class="dropdown-content">
+        <button id="uploadButton" title="Upload JSON File">Load JSON</button>
+        <button id="downloadJsonButton" title="Download Edited JSON">Save JSON</button>
+      </div>
+    </div>
     <button id="reopenScannerButton" style="display:none;">Reopen QR Code Scanner</button>
   </header>
   <main>
