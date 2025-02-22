@@ -130,9 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (key === 'current_stock') {
         const increaseButton = document.createElement('button');
         increaseButton.type = 'button';
-        increaseButton.textContent = '+';
+        increaseButton.textContent = ' + ';
         increaseButton.style.width = '25%';
-        increaseButton.style.height = '30px';
         increaseButton.style.marginLeft = '5px';
         increaseButton.onclick = () => {
           input.value = parseInt(input.value) + 1;
@@ -141,9 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const decreaseButton = document.createElement('button');
         decreaseButton.type = 'button';
-        decreaseButton.textContent = '-';
+        decreaseButton.textContent = ' - ';
         decreaseButton.style.width = '25%';
-        decreaseButton.style.height = '30px';
         decreaseButton.style.marginLeft = '5px';
         decreaseButton.onclick = () => {
           input.value = parseInt(input.value) - 1;
