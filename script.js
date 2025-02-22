@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const key in data) {
       const value = data[key];
       const input = document.createElement('input');
-      input.type = key.includes('date') || key.includes('timestamp') ? 'datetime-local' : 'text';
+      input.type = key.includes('date') || key.includes('timestamp') ? 'datetime-local' : (typeof value === 'number' ? 'number' : 'text');
       input.name = key;
       if (key.includes('date') || key.includes('timestamp')) {
         const dateValue = new Date(value);
@@ -108,6 +108,24 @@ document.addEventListener('DOMContentLoaded', () => {
       label.textContent = key;
       form.appendChild(label);
       form.appendChild(input);
+
+      if (typeof value === 'number') {
+        const increaseButton = document.createElement('button');
+        increaseButton.type = 'button';
+        increaseButton.textContent = '+';
+        increaseButton.onclick = () => {
+          input.value = parseInt(input.value) + 1;
+        };
+        form.appendChild(increaseButton);
+
+        const decreaseButton = document.createElement('button');
+        decreaseButton.type = 'button';
+        decreaseButton.textContent = '-';
+        decreaseButton.onclick = () => {
+          input.value = parseInt(input.value) - 1;
+        };
+        form.appendChild(decreaseButton);
+      }
     }
 
     const closeButton = document.querySelector('.close');
@@ -124,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('saveChangesButton').onclick = () => {
       const formData = new FormData(form);
       for (const [key, value] of formData.entries()) {
-        data[key] = key.includes('date') || key.includes('timestamp') ? new Date(value).toISOString() : value;
+        data[key] = key.includes('date') || key.includes('timestamp') ? new Date(value).toISOString() : (typeof data[key] === 'number' ? parseInt(value) : value);
       }
       document.getElementById('jsonOutput').textContent = JSON.stringify(inventoryData, null, 2);
       modal.style.display = 'none';
