@@ -28,15 +28,19 @@
         <a href='blog.html'>Blog</a>
         <a href='about.html'>About</a>
     </nav>
+    <header>
+        <button id="uploadButton">Upload JSON File</button>
+        <button id="reopenScannerButton">Reopen QR Code Scanner</button>
+    </header>
     <main>
-        Hi there, this is the content area.
+        <div id="content">
+            <p>Hi there, this is the content area.</p>
+            <input type="file" id="jsonFileInput" accept=".json" style="display:none;" />
+            <pre id="jsonOutput"></pre>
+            <div id="reader" style="width:100%; max-width:500px;"></div>
+            <div id="qrCodeResult"></div>
+        </div>
     </main>
-    <input type="file" id="jsonFileInput" accept=".json" style="display:none;" />
-    <button id="uploadButton">Upload JSON File</button>
-    <pre id="jsonOutput"></pre>
-    <div id="reader" style="width:100%; max-width:500px;"></div>
-    <div id="qrCodeResult"></div>
-    <button id="reopenScannerButton">Reopen QR Code Scanner</button>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
