@@ -92,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
       label.textContent = key;
       form.appendChild(label);
       form.appendChild(input);
-      form.appendChild(document.createElement('br'));
     }
 
     const closeButton = document.querySelector('.close');
