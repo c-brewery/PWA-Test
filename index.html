@@ -22,17 +22,15 @@
   <meta name="theme-color" content="#000000">
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <body>
   <header>
     <div class="navbar" id="myNavbar">
-      <div class="dropdown">
-        <button class="dropbtn" >Menu</button>
-        <button class="dropbtn" id="uploadButton">Load file</button>
-        <button class="dropbtn" id="downloadJsonButton">Download file</button>
-      </div> 
-      <a href="javascript:void(0);" class="icon" onclick="toggleNavbar()">&#9776;</a>
+      <a href="#" id="uploadButton"><i class="fa fa-fw fa-upload"></i> Load file</a>
+      <a href="#" id="downloadJsonButton"><i class="fa fa-fw fa-download"></i> Download file</a>
+      <a href="#" id="reopenScannerButton" style="display:none;"><i class="fa fa-fw fa-qrcode"></i> Reopen QR Scanner</a>
+      <a href="javascript:void(0);" class="icon" onclick="toggleNavbar()"><i class="fa fa-bars"></i></a>
     </div>
-    <button id="reopenScannerButton" style="display:none;">Reopen QR Code Scanner</button>
   </header>
   <main>
     <div id="content">
