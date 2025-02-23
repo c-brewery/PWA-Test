@@ -78,16 +78,11 @@
       document.body.appendChild(script);
     });
   </script>
-  <script src="/node_modules/html5-qrcode/html5-qrcode.min.js"></script>
-  <script src="main.js"></script>
+  <script src="main.js" defer></script>
   <script>
     function toggleNavbar() {
       var x = document.getElementById("myNavbar");
-      if (x.className === "navbar") {
-        x.className += " responsive";
-      } else {
-        x.className = "navbar";
-      }
+      x.classList.toggle("responsive");
     }
   </script>
 </body>
