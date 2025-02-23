@@ -12,16 +12,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const lastLoadedFileKey = 'lastLoadedFile';
   const cachedDataKey = 'cachedInventoryData';
 
-  document.getElementById('uploadButton').addEventListener('click', () => {
-    document.getElementById('jsonFileInput').click();
+  const uploadButton = document.getElementById('uploadButton');
+  const downloadJsonButton = document.getElementById('downloadJsonButton');
+  const jsonFileInput = document.getElementById('jsonFileInput');
+
+  uploadButton.addEventListener('click', () => {
+    jsonFileInput.click();
   });
 
-  document.getElementById('jsonFileInput').addEventListener('change', event => {
+  jsonFileInput.addEventListener('change', (event) => {
     const file = event.target.files[0];
     if (file) {
-      localStorage.setItem(lastLoadedFileKey, file.name);
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = (e) => {
         const jsonContent = e.target.result;
         try {
           inventoryData = JSON.parse(jsonContent).inventory;
@@ -85,14 +88,15 @@ document.addEventListener('DOMContentLoaded', () => {
     startQrScanner();
   });
 
-  document.getElementById('downloadJsonButton').addEventListener('click', () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ inventory: inventoryData }, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "edited_inventory.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
+  downloadJsonButton.addEventListener('click', () => {
+    const jsonContent = document.getElementById('jsonOutput').textContent;
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'edited.json';
+    a.click();
+    URL.revokeObjectURL(url);
   });
 
   function showModal(data) {
