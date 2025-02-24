@@ -11,7 +11,6 @@ export function startQrScanner(inventoryData, showModal) {
       qrScanner.stop().then(() => {
         console.log("QR Code scanning stopped.");
         document.getElementById('reader').style.display = 'none';
-        document.getElementById('reopenScannerButton').style.display = 'block';
         const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
         if (scannedData) {
           showModal(scannedData);

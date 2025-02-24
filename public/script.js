@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
         qrScanner.stop().then(() => {
           console.log("QR Code scanning stopped.");
           document.getElementById('reader').style.display = 'none'; // Hide the camera image
-          reopenScannerButton.style.display = 'block'; // Show the reopen button
           const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
           if (scannedData) {
             showModal(scannedData);
@@ -86,7 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   reopenScannerButton.addEventListener('click', () => {
     document.getElementById('reader').style.display = 'block'; // Show the camera image
-    reopenScannerButton.style.display = 'none'; // Hide the reopen button
     startQrScanner();
   });
 
