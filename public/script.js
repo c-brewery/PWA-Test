@@ -2,10 +2,7 @@ import { startQrScanner } from './qrScanner.js';
 import { handleFileUpload, loadCachedData } from './fileHandler.js';
 import { showModal } from './modalHandler.js';
 
-function toggleNavbar() {
-  var x = document.getElementById("myNavbar");
-  x.classList.toggle("responsive");
-}
+
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!Html5Qrcode) {
