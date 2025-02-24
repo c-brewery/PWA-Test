@@ -71,8 +71,8 @@
     <div class="topnav">
       <a href="#home" class="active">Logo</a>
       <div id="myLinks">
-        <a href="#upload">Load file</a>
-        <a href="#download"> Download file</a>
+        <a href="#upload" id="uploadButton">Load file</a>
+        <a href="#download" id="downloadJsonButton"> Download file</a>
         <a href="#reopen"> Reopen QR Scanner</a>
       </div>
       <a href="javascript:void(0);" class="icon" id="toggleNavbarButton" onclick="myFunction()"><i class="fa fa-bars"></i></a>
@@ -118,12 +118,7 @@
     });
   </script>
   <script src="main.js" defer></script>
-  <script>
-    function toggleNavbar() {
-      var x = document.getElementById("myNavbar");
-      x.classList.toggle("responsive");
-    }
-  </script>
+
 </body>
 <script>
   function myFunction() {
