@@ -2,6 +2,8 @@ import { startQrScanner } from './qrScanner.js';
 import { handleFileUpload, loadCachedData } from './fileHandler.js';
 import { showModal } from './modalHandler.js';
 
+
+
 document.addEventListener('DOMContentLoaded', () => {
   if (!Html5Qrcode) {
     console.error('Html5Qrcode is not loaded');
