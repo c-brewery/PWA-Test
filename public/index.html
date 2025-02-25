@@ -6,14 +6,9 @@
   <title>PWA Test</title>
   <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="assets/styles/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="icon" href="assets/icons/icon-192x192.png">
   <link rel="shortcut icon" href="assets/icons/icon-192x192.png">
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js');
-    };
-    document.getElementById('toggleNavbarButton').addEventListener('click', toggleNavbar);
-  </script>
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="PWA Example">
@@ -23,7 +18,6 @@
   <meta name="theme-color" content="#000000">
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <body>
 
     <div class="topnav">
@@ -34,7 +28,6 @@
       </div>
       <a href="javascript:void(0);" class="icon" id="toggleNavbarButton" onclick="toggleNavbar()"><i class="fa fa-bars"></i></a>
     </div>
-  </div>
   <main>
     <div id="content">
       <input type="file" id="jsonFileInput" accept=".json" style="display:none;" />
@@ -50,7 +43,7 @@
       <form id="editForm">
         <!-- Form fields will be dynamically generated -->
       </form>
-      <button type="</div>button" id="saveChangesButton">Save Changes</button>
+      <button type="button" id="saveChangesButton">Save Changes</button>
     </div>
   </div>
   <script>
@@ -66,16 +59,12 @@
     }
   </script>
   <script src="script.js" type="module"></script>
+  <script src="main.js" defer></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const script = document.createElement('script');
-      script.src = 'script.js';
-      script.onload = () => console.log('script.js loaded successfully');
-      script.onerror = () => console.error('Failed to load script.js');
-      document.body.appendChild(script);
+      document.getElementById('toggleNavbarButton').addEventListener('click', toggleNavbar);
     });
   </script>
-  <script src="main.js" defer></script>
 
 </body>
 </html>
