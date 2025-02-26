@@ -31,7 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           inventoryData = JSON.parse(jsonContent).inventory;
           localStorage.setItem(cachedDataKey, JSON.stringify(inventoryData));
-          document.getElementById('jsonOutput').textContent = JSON.stringify(inventoryData, null, 2);
+          displayJsonData(inventoryData);
+          document.getElementById('jsonOutput').style.display = 'none';
         } catch (error) {
           document.getElementById('jsonOutput').textContent = 'Invalid JSON file';
         }
@@ -44,7 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const cachedData = localStorage.getItem(cachedDataKey);
   if (lastLoadedFile && cachedData) {
     inventoryData = JSON.parse(cachedData);
-    document.getElementById('jsonOutput').textContent = `Last loaded file: ${lastLoadedFile}\n${JSON.stringify(inventoryData, null, 2)}`;
+    displayJsonData(inventoryData);
+    document.getElementById('jsonOutput').style.display = 'none';
   }
 
   const reopenScannerButton = document.getElementById('reopenScannerButton');
@@ -173,7 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
         data[key] = key.includes('date') || key.includes('timestamp') ? new Date(value).toISOString() : (typeof data[key] === 'number' ? parseInt(value) : value);
       }
       localStorage.setItem(cachedDataKey, JSON.stringify(inventoryData));
-      document.getElementById('jsonOutput').textContent = JSON.stringify(inventoryData, null, 2);
+      displayJsonData(inventoryData);
+      document.getElementById('jsonOutput').style.display = 'none';
       modal.style.display = 'none';
     };
 
@@ -218,3 +221,65 @@ window.onclick = function(event) {
     }
   }
 }
+
+function displayJsonData(jsonData) {
+  const tableBody = document.getElementById('tableBody');
+  tableBody.innerHTML = '';
+  
+  // Konvertiere JSON-Objekt in Array, falls es noch keins ist
+  const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
+  
+  dataArray.forEach(item => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${item.qr_code || ''}</td>
+      <td>${item.name || ''}</td>
+      <td>${item.location || ''}</td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+// Sortierfunktion für die Tabelle
+function setupTableSorting() {
+  const table = document.querySelector('.sortable-table');
+  const headers = table.querySelectorAll('th');
+  let currentSort = { column: '', ascending: true };
+
+  headers.forEach(header => {
+    header.addEventListener('click', () => {
+      const column = header.dataset.sort;
+      const ascending = currentSort.column === column ? !currentSort.ascending : true;
+      
+      // Sortiere die Tabellenzeilen
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      rows.sort((a, b) => {
+        const aValue = a.children[Array.from(headers).indexOf(header)].textContent;
+        const bValue = b.children[Array.from(headers).indexOf(header)].textContent;
+        return ascending ? 
+          aValue.localeCompare(bValue) : 
+          bValue.localeCompare(aValue);
+      });
+      
+      // Aktualisiere die Sortierrichtung
+      currentSort = { column, ascending };
+      
+      // Aktualisiere die Tabellenansicht
+      const tbody = table.querySelector('tbody');
+      rows.forEach(row => tbody.appendChild(row));
+      
+      // Aktualisiere die Sortierpfeile
+      headers.forEach(h => {
+        const arrow = h.querySelector('.sort-icon');
+        if (h === header) {
+          arrow.textContent = ascending ? '↓' : '↑';
+        } else {
+          arrow.textContent = '↕';
+        }
+      });
+    });
+  });
+}
+
+// Initialisiere die Tabellensortierung nach dem Laden der Seite
+document.addEventListener('DOMContentLoaded', setupTableSorting);
