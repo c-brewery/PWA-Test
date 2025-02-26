@@ -235,6 +235,11 @@ button[type="button"]:hover {
   background-color: #f9f9f9;
 }
 
+.sortable-table tr {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
 .sortable-table tr:hover {
-  background-color: #f0f0f0;
+  background-color: #e0e0e0;
 }

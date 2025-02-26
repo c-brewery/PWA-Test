@@ -236,6 +236,14 @@ function displayJsonData(jsonData) {
       <td>${item.name || ''}</td>
       <td>${item.location || ''}</td>
     `;
+    // Füge Click-Event und Cursor-Style hinzu
+    row.style.cursor = 'pointer';
+    row.addEventListener('click', () => {
+      const scannedData = dataArray.find(data => data.qr_code === item.qr_code);
+      if (scannedData) {
+        showModal(scannedData);
+      }
+    });
     tableBody.appendChild(row);
   });
 }
