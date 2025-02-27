@@ -68,27 +68,38 @@ document.addEventListener('DOMContentLoaded', () => {
         qrbox: { width: 250, height: 250 },
         aspectRatio: 1.0
       },
-      qrCodeMessage => {
+      (qrCodeMessage) => {
+        // Erst den Scanner stoppen
         stopQrScanner();
+        
+        // Dann nach dem Code suchen
         const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
         if (scannedData) {
-          const rows = document.querySelectorAll('.sortable-table tbody tr');
-          rows.forEach(row => {
-            const qrCodeCell = row.cells[0];
-            if (qrCodeCell && qrCodeCell.textContent === qrCodeMessage) {
+          // Entsprechende Zeile in der Tabelle finden und markieren
+          const tableBody = document.getElementById('tableBody');
+          const rows = tableBody.getElementsByTagName('tr');
+          
+          for (let row of rows) {
+            if (row.cells[0].textContent === qrCodeMessage) {
+              // Alle Selektierungen entfernen
               document.querySelectorAll('.sortable-table tbody tr').forEach(r => 
                 r.classList.remove('selected')
               );
+              // Diese Zeile selektieren
               row.classList.add('selected');
+              // Zur Zeile scrollen
               row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              showModal(scannedData);
+              break;
             }
-          });
+          }
+          
+          // Modal öffnen
+          showModal(scannedData);
         } else {
           alert('QR code not found in inventory');
         }
       },
-      errorMessage => {
+      (errorMessage) => {
         if (!errorMessage.includes('QR code no longer in front of camera')) {
           console.log(errorMessage);
         }
