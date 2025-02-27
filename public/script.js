@@ -59,10 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeQrScannerBtn = document.getElementById('closeQrScanner');
 
   function startQrScanner() {
-    // Erst Modal zeigen
     qrScannerModal.style.display = 'block';
     
-    // Dann Scanner starten
     qrScanner.start(
       { facingMode: "environment" },
       {
@@ -71,10 +69,17 @@ document.addEventListener('DOMContentLoaded', () => {
         aspectRatio: 1.0
       },
       qrCodeMessage => {
-        document.getElementById('qrCodeResult').textContent = qrCodeMessage;
         stopQrScanner();
         const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
         if (scannedData) {
+          const rows = document.querySelectorAll('.sortable-table tr');
+          rows.forEach(row => {
+            if (row.cells[0].textContent === qrCodeMessage) {
+              rows.forEach(r => r.classList.remove('selected'));
+              row.classList.add('selected');
+              row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          });
           showModal(scannedData);
         } else {
           alert('QR code not found in inventory');
@@ -251,7 +256,6 @@ function displayJsonData(jsonData) {
   const tableBody = document.getElementById('tableBody');
   tableBody.innerHTML = '';
   
-  // Konvertiere JSON-Objekt in Array, falls es noch keins ist
   const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
   
   dataArray.forEach(item => {
@@ -261,13 +265,11 @@ function displayJsonData(jsonData) {
       <td>${item.name || ''}</td>
       <td>${item.location || ''}</td>
     `;
-    // Füge Click-Event und Cursor-Style hinzu
     row.style.cursor = 'pointer';
     row.addEventListener('click', () => {
-      const scannedData = dataArray.find(data => data.qr_code === item.qr_code);
-      if (scannedData) {
-        showModal(scannedData);
-      }
+      document.querySelectorAll('.sortable-table tr').forEach(r => r.classList.remove('selected'));
+      row.classList.add('selected');
+      showModal(item);
     });
     tableBody.appendChild(row);
   });
