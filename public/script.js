@@ -118,8 +118,16 @@ function displayJsonData(jsonData, highlightQrCode = null) {
     if (highlightQrCode && item.qr_code === highlightQrCode) {
       row.classList.add("scanned-row");
     }
+
+    // Check if stock_last_updated is valid
+    const stockLastUpdated = new Date(item.stock_last_updated);
+    const isValidStockUpdate = !isNaN(stockLastUpdated.getTime());
+    
     row.innerHTML = `
-      <td>${item.qr_code || ""}</td>
+      <td>
+        ${isValidStockUpdate ? '<i class="fa fa-check-circle" style="color: #4CAF50; margin-right: 8px;"></i>' : ''}
+        ${item.qr_code || ""}
+      </td>
       <td>${item.name || ""}</td>
       <td>${item.location || ""}</td>
     `;
