@@ -1,30 +1,64 @@
-export function startQrScanner(inventoryData, showModal) {
-  const qrScanner = new Html5Qrcode("reader");
-  qrScanner.start(
-    { facingMode: "environment" },
-    {
-      fps: 10,
-      qrbox: 250
-    },
-    qrCodeMessage => {
-      document.getElementById('qrCodeResult').textContent = qrCodeMessage;
-      qrScanner.stop().then(() => {
-        console.log("QR Code scanning stopped.");
-        document.getElementById('reader').style.display = 'none';
-        const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
-        if (scannedData) {
-          showModal(scannedData);
-        } else {
-          alert('QR code not found in inventory');
-        }
-      }).catch(err => {
-        console.error("Failed to stop scanning.", err);
-      });
-    },
-    errorMessage => {
-      console.log(`QR Code no longer in front of camera. Error: ${errorMessage}`);
+export class QRScanner {
+  constructor() {
+    this.scanner = null;
+  }
+
+  async initialize(onSuccess) {
+    if (!this.scanner) {
+      this.scanner = new Html5Qrcode("reader");
     }
-  ).catch(err => {
-    console.error(`Unable to start scanning, error: ${err}`);
-  });
+
+    const config = {
+      fps: 10,
+      qrbox: { width: 250, height: 250 },
+      aspectRatio: 1.0,
+      showTorchButtonIfSupported: true,
+    };
+
+    try {
+      const devices = await Html5Qrcode.getCameras();
+      if (!devices || devices.length === 0) {
+        throw new Error("No cameras found on the device!");
+      }
+
+      // Try rear camera first
+      try {
+        await this.scanner.start(
+          { facingMode: "environment" },
+          config,
+          onSuccess,
+          this.handleError
+        );
+      } catch {
+        // If rear camera fails, try front camera
+        await this.scanner.start(
+          { facingMode: "user" },
+          config,
+          onSuccess,
+          this.handleError
+        );
+      }
+    } catch (err) {
+      console.error("Error initializing scanner:", err);
+      throw err;
+    }
+  }
+
+  handleError(errorMessage) {
+    if (!errorMessage.includes("QR code no longer in front of camera")) {
+      console.log(errorMessage);
+    }
+  }
+
+  async stop() {
+    if (this.scanner) {
+      try {
+        await this.scanner.stop();
+        this.scanner = null;
+      } catch (err) {
+        console.error("Error stopping scanner:", err);
+        this.scanner = null;
+      }
+    }
+  }
 }
