@@ -59,8 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeQrScannerBtn = document.getElementById('closeQrScanner');
 
   function startQrScanner() {
+    // Erst Modal zeigen
     qrScannerModal.style.display = 'block';
     
+    // Dann Scanner starten
     qrScanner.start(
       { facingMode: "environment" },
       {
@@ -68,38 +70,17 @@ document.addEventListener('DOMContentLoaded', () => {
         qrbox: { width: 250, height: 250 },
         aspectRatio: 1.0
       },
-      (qrCodeMessage) => {
-        // Erst den Scanner stoppen
+      qrCodeMessage => {
+        document.getElementById('qrCodeResult').textContent = qrCodeMessage;
         stopQrScanner();
-        
-        // Dann nach dem Code suchen
         const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
         if (scannedData) {
-          // Entsprechende Zeile in der Tabelle finden und markieren
-          const tableBody = document.getElementById('tableBody');
-          const rows = tableBody.getElementsByTagName('tr');
-          
-          for (let row of rows) {
-            if (row.cells[0].textContent === qrCodeMessage) {
-              // Alle Selektierungen entfernen
-              document.querySelectorAll('.sortable-table tbody tr').forEach(r => 
-                r.classList.remove('selected')
-              );
-              // Diese Zeile selektieren
-              row.classList.add('selected');
-              // Zur Zeile scrollen
-              row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              break;
-            }
-          }
-          
-          // Modal öffnen
           showModal(scannedData);
         } else {
           alert('QR code not found in inventory');
         }
       },
-      (errorMessage) => {
+      errorMessage => {
         if (!errorMessage.includes('QR code no longer in front of camera')) {
           console.log(errorMessage);
         }
@@ -270,6 +251,7 @@ function displayJsonData(jsonData) {
   const tableBody = document.getElementById('tableBody');
   tableBody.innerHTML = '';
   
+  // Konvertiere JSON-Objekt in Array, falls es noch keins ist
   const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
   
   dataArray.forEach(item => {
@@ -279,11 +261,13 @@ function displayJsonData(jsonData) {
       <td>${item.name || ''}</td>
       <td>${item.location || ''}</td>
     `;
+    // Füge Click-Event und Cursor-Style hinzu
     row.style.cursor = 'pointer';
     row.addEventListener('click', () => {
-      document.querySelectorAll('.sortable-table tr').forEach(r => r.classList.remove('selected'));
-      row.classList.add('selected');
-      showModal(item);
+      const scannedData = dataArray.find(data => data.qr_code === item.qr_code);
+      if (scannedData) {
+        showModal(scannedData);
+      }
     });
     tableBody.appendChild(row);
   });

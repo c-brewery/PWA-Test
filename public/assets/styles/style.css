@@ -270,11 +270,3 @@ button[type="button"]:hover {
 .button:hover {
   background-color: #45a049;
 }
-
-.sortable-table tr.selected {
-  background-color: #e0e0e0 !important;
-}
-
-.sortable-table tr.selected:hover {
-  background-color: #d0d0d0 !important;
-}
