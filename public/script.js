@@ -60,12 +60,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startQrScanner() {
     qrScannerModal.style.display = 'block';
+    const config = {
+      fps: 30,  // Erhöhung von 10 auf 30 FPS
+      qrbox: { width: 250, height: 250 },
+      aspectRatio: 1.0,
+      formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]  // Nur QR-Codes scannen
+    };
+    
     qrScanner.start(
-      { facingMode: "environment" },
-      {
-        fps: 10,
-        qrbox: 250
+      { 
+        facingMode: "environment",
+        focusMode: "continuous"  // Kontinuierlicher Autofokus
       },
+      config,
       qrCodeMessage => {
         document.getElementById('qrCodeResult').textContent = qrCodeMessage;
         stopQrScanner();
@@ -77,7 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       },
       errorMessage => {
-        console.log(`QR Code no longer in front of camera. Error: ${errorMessage}`);
+        // Reduziere Error-Logging auf wichtige Fehler
+        if (!errorMessage.includes('QR code no longer in front of camera')) {
+          console.log(errorMessage);
+        }
       }
     ).catch(err => {
       console.error(`Unable to start scanning, error: ${err}`);
