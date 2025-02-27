@@ -23,13 +23,13 @@ button {
   background-color: #007aff;
   border: none;
   color: white;
-  padding: 15px 20px;
+  padding: 12px 16px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  font-size: 16px;
-  margin: 10px 2px;
-  border-radius: 10px;
+  font-size: 14px;
+  margin: 8px 2px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -78,19 +78,23 @@ button:hover {
 
 .modal-content {
   background-color: #fefefe;
-  margin: 15% auto;
-  padding: 20px;
+  margin: 10% auto;
+  padding: 15px;
   border: 1px solid #888;
-  width: 80%;
-  max-width: 600px;
+  width: 90%;
+  max-width: 500px;
   border-radius: 10px;
   transform: translateZ(0);
   will-change: transform;
+  box-sizing: border-box;
 }
 
 #qrScannerModal .modal-content {
   margin: 5% auto;
   transition: none;
+  width: 90%;
+  max-width: 350px;
+  padding: 10px;
 }
 
 .close {
@@ -216,8 +220,8 @@ button:hover {
 }
 
 .button {
-  padding: 10px 20px;
-  margin: 10px 0;
+  padding: 8px 16px;
+  margin: 8px 0;
   background-color: #4CAF50;
   color: white;
   border: none;
@@ -225,7 +229,8 @@ button:hover {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  font-size: 14px;
 }
 
 .button:hover {
@@ -293,16 +298,56 @@ button:hover {
 
 @media screen and (max-width: 600px) {
   .modal-content {
-    width: 95%;
-    margin: 10% auto;
+    width: 92%;
+    margin: 3% auto;
+    padding: 12px;
+  }
+
+  #qrScannerModal .modal-content {
+    width: 92%;
+    margin: 2% auto;
+    padding: 8px;
+  }
+
+  #reader {
+    margin-top: 8px;
+    width: 100%;
+    max-width: none;
+    height: auto;
   }
 
   .button {
-    width: 100%;
-    margin: 5px 0;
+    width: auto;
+    margin: 4px 0;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  button {
+    padding: 10px 14px;
+    font-size: 13px;
+    margin: 6px 2px;
   }
 
   #buttonContainer {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .input-container {
+    margin-bottom: 10px;
+  }
+
+  .input-container input {
+    padding: 6px;
+    font-size: 14px;
+  }
+
+  .stock-button {
+    width: 32px;
+    height: 28px;
+    margin: 0 3px;
   }
 }
