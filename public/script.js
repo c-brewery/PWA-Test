@@ -52,67 +52,51 @@ document.addEventListener('DOMContentLoaded', () => {
   const reopenScannerButton = document.getElementById('reopenScannerButton');
 
   const qrScanner = new Html5Qrcode("reader");
-  let isScanning = false;  // Track scanner state
 
   // QR Scanner Modal Elements
   const qrScannerModal = document.getElementById('qrScannerModal');
   const openQrScannerBtn = document.getElementById('openQrScanner');
   const closeQrScannerBtn = document.getElementById('closeQrScanner');
 
-  // Konfiguration außerhalb der Funktion definieren
-  const scannerConfig = {
-    fps: 30,
-    qrbox: { width: 250, height: 250 },
-    aspectRatio: 1.0,
-    formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
-  };
-
-  async function startQrScanner() {
-    if (isScanning) return;
-    
-    // Sofort Modal anzeigen
+  function startQrScanner() {
+    // Erst Modal zeigen
     qrScannerModal.style.display = 'block';
     
-    try {
-      isScanning = true;
-      await qrScanner.start(
-        { 
-          facingMode: "environment",
-          focusMode: "continuous"
-        },
-        scannerConfig,
-        (qrCodeMessage) => {
-          document.getElementById('qrCodeResult').textContent = qrCodeMessage;
-          stopQrScanner();
-          const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
-          if (scannedData) {
-            showModal(scannedData);
-          } else {
-            alert('QR code not found in inventory');
-          }
-        },
-        (errorMessage) => {
-          if (!errorMessage.includes('QR code no longer in front of camera')) {
-            console.log(errorMessage);
-          }
+    // Dann Scanner starten
+    qrScanner.start(
+      { facingMode: "environment" },
+      {
+        fps: 30,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
+      },
+      qrCodeMessage => {
+        document.getElementById('qrCodeResult').textContent = qrCodeMessage;
+        stopQrScanner();
+        const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
+        if (scannedData) {
+          showModal(scannedData);
+        } else {
+          alert('QR code not found in inventory');
         }
-      );
-    } catch (err) {
+      },
+      errorMessage => {
+        if (!errorMessage.includes('QR code no longer in front of camera')) {
+          console.log(errorMessage);
+        }
+      }
+    ).catch(err => {
       console.error(`Unable to start scanning, error: ${err}`);
-      qrScannerModal.style.display = 'none';
-    }
+    });
   }
 
-  async function stopQrScanner() {
-    if (!isScanning) return;
-    
-    try {
-      await qrScanner.stop();
-      isScanning = false;
+  function stopQrScanner() {
+    qrScanner.stop().then(() => {
+      console.log("QR Code scanning stopped.");
       qrScannerModal.style.display = 'none';
-    } catch (err) {
+    }).catch(err => {
       console.error("Failed to stop scanning.", err);
-    }
+    });
   }
 
   // Event Listeners für QR Scanner
@@ -120,11 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
   closeQrScannerBtn.addEventListener('click', stopQrScanner);
 
   // Schließe Scanner auch wenn außerhalb des Modals geklickt wird
-  window.addEventListener('click', (event) => {
+  window.onclick = function(event) {
     if (event.target === qrScannerModal) {
       stopQrScanner();
     }
-  });
+  };
 
   reopenScannerButton.addEventListener('click', () => {
     document.getElementById('reader').style.display = 'block'; // Show the camera image
