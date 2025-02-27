@@ -72,15 +72,18 @@ document.addEventListener('DOMContentLoaded', () => {
         stopQrScanner();
         const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
         if (scannedData) {
-          const rows = document.querySelectorAll('.sortable-table tr');
+          const rows = document.querySelectorAll('.sortable-table tbody tr');
           rows.forEach(row => {
-            if (row.cells[0].textContent === qrCodeMessage) {
-              rows.forEach(r => r.classList.remove('selected'));
+            const qrCodeCell = row.cells[0];
+            if (qrCodeCell && qrCodeCell.textContent === qrCodeMessage) {
+              document.querySelectorAll('.sortable-table tbody tr').forEach(r => 
+                r.classList.remove('selected')
+              );
               row.classList.add('selected');
               row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              showModal(scannedData);
             }
           });
-          showModal(scannedData);
         } else {
           alert('QR code not found in inventory');
         }
