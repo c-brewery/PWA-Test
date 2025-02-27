@@ -53,7 +53,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const qrScanner = new Html5Qrcode("reader");
 
+  // QR Scanner Modal Elements
+  const qrScannerModal = document.getElementById('qrScannerModal');
+  const openQrScannerBtn = document.getElementById('openQrScanner');
+  const closeQrScannerBtn = document.getElementById('closeQrScanner');
+
   function startQrScanner() {
+    qrScannerModal.style.display = 'block';
     qrScanner.start(
       { facingMode: "environment" },
       {
@@ -62,18 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       qrCodeMessage => {
         document.getElementById('qrCodeResult').textContent = qrCodeMessage;
-        qrScanner.stop().then(() => {
-          console.log("QR Code scanning stopped.");
-          document.getElementById('reader').style.display = 'none'; // Hide the camera image
-          const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
-          if (scannedData) {
-            showModal(scannedData);
-          } else {
-            alert('QR code not found in inventory');
-          }
-        }).catch(err => {
-          console.error("Failed to stop scanning.", err);
-        });
+        stopQrScanner();
+        const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
+        if (scannedData) {
+          showModal(scannedData);
+        } else {
+          alert('QR code not found in inventory');
+        }
       },
       errorMessage => {
         console.log(`QR Code no longer in front of camera. Error: ${errorMessage}`);
@@ -83,7 +84,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  startQrScanner();
+  function stopQrScanner() {
+    qrScanner.stop().then(() => {
+      console.log("QR Code scanning stopped.");
+      qrScannerModal.style.display = 'none';
+    }).catch(err => {
+      console.error("Failed to stop scanning.", err);
+    });
+  }
+
+  // Event Listeners für QR Scanner
+  openQrScannerBtn.addEventListener('click', startQrScanner);
+  closeQrScannerBtn.addEventListener('click', stopQrScanner);
+
+  // Schließe Scanner auch wenn außerhalb des Modals geklickt wird
+  window.addEventListener('click', (event) => {
+    if (event.target === qrScannerModal) {
+      stopQrScanner();
+    }
+  });
 
   reopenScannerButton.addEventListener('click', () => {
     document.getElementById('reader').style.display = 'block'; // Show the camera image
