@@ -52,55 +52,67 @@ document.addEventListener('DOMContentLoaded', () => {
   const reopenScannerButton = document.getElementById('reopenScannerButton');
 
   const qrScanner = new Html5Qrcode("reader");
+  let isScanning = false;  // Track scanner state
 
   // QR Scanner Modal Elements
   const qrScannerModal = document.getElementById('qrScannerModal');
   const openQrScannerBtn = document.getElementById('openQrScanner');
   const closeQrScannerBtn = document.getElementById('closeQrScanner');
 
-  function startQrScanner() {
-    qrScannerModal.style.display = 'block';
-    const config = {
-      fps: 30,  // Erhöhung von 10 auf 30 FPS
-      qrbox: { width: 250, height: 250 },
-      aspectRatio: 1.0,
-      formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]  // Nur QR-Codes scannen
-    };
+  // Konfiguration außerhalb der Funktion definieren
+  const scannerConfig = {
+    fps: 30,
+    qrbox: { width: 250, height: 250 },
+    aspectRatio: 1.0,
+    formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+  };
+
+  async function startQrScanner() {
+    if (isScanning) return;
     
-    qrScanner.start(
-      { 
-        facingMode: "environment",
-        focusMode: "continuous"  // Kontinuierlicher Autofokus
-      },
-      config,
-      qrCodeMessage => {
-        document.getElementById('qrCodeResult').textContent = qrCodeMessage;
-        stopQrScanner();
-        const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
-        if (scannedData) {
-          showModal(scannedData);
-        } else {
-          alert('QR code not found in inventory');
+    // Sofort Modal anzeigen
+    qrScannerModal.style.display = 'block';
+    
+    try {
+      isScanning = true;
+      await qrScanner.start(
+        { 
+          facingMode: "environment",
+          focusMode: "continuous"
+        },
+        scannerConfig,
+        (qrCodeMessage) => {
+          document.getElementById('qrCodeResult').textContent = qrCodeMessage;
+          stopQrScanner();
+          const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
+          if (scannedData) {
+            showModal(scannedData);
+          } else {
+            alert('QR code not found in inventory');
+          }
+        },
+        (errorMessage) => {
+          if (!errorMessage.includes('QR code no longer in front of camera')) {
+            console.log(errorMessage);
+          }
         }
-      },
-      errorMessage => {
-        // Reduziere Error-Logging auf wichtige Fehler
-        if (!errorMessage.includes('QR code no longer in front of camera')) {
-          console.log(errorMessage);
-        }
-      }
-    ).catch(err => {
+      );
+    } catch (err) {
       console.error(`Unable to start scanning, error: ${err}`);
-    });
+      qrScannerModal.style.display = 'none';
+    }
   }
 
-  function stopQrScanner() {
-    qrScanner.stop().then(() => {
-      console.log("QR Code scanning stopped.");
+  async function stopQrScanner() {
+    if (!isScanning) return;
+    
+    try {
+      await qrScanner.stop();
+      isScanning = false;
       qrScannerModal.style.display = 'none';
-    }).catch(err => {
+    } catch (err) {
       console.error("Failed to stop scanning.", err);
-    });
+    }
   }
 
   // Event Listeners für QR Scanner
