@@ -25,6 +25,7 @@
       <div id="myLinks">
         <a href="#upload" id="uploadButton"><i class="fa fa-fw fa-upload"></i> Load file</a>
         <a href="#download" id="downloadJsonButton"><i class="fa fa-fw fa-download"></i> Download file</a>
+        <a href="#settings" id="settingsButton"><i class="fa fa-fw fa-cog"></i> Einstellungen</a>
       </div>
       <a href="javascript:void(0);" class="icon" id="toggleNavbarButton" onclick="toggleNavbar()"><i class="fa fa-bars"></i></a>
     </div>
@@ -32,6 +33,7 @@
     <div id="content">
       <input type="file" id="jsonFileInput" accept=".json" style="display:none;" />
       <button id="openQrScanner" class="button"><i class="fa fa-fw fa-qrcode"></i> Open QR Scanner</button>
+      <div id="qrCodeResult"></div>
       <table id="dataTable" class="sortable-table">
         <thead>
           <tr>
@@ -59,6 +61,61 @@
     <div class="modal-content">
       <span class="close" id="closeQrScanner">&times;</span>
       <div id="reader" style="width:100%; max-width:500px;"></div>
+    </div>
+  </div>
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Einstellungen</h2>
+      <div class="settings-section">
+        <h3>Angezeigte Spalten</h3>
+        <div id="columnSettings">
+          <div class="checkbox-group">
+            <input type="checkbox" id="col_qr_code" checked disabled>
+            <label for="col_qr_code">QR Code (immer sichtbar)</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="col_name" checked>
+            <label for="col_name">Name</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="col_location" checked>
+            <label for="col_location">Standort</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="col_description">
+            <label for="col_description">Beschreibung</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="col_category">
+            <label for="col_category">Kategorie</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="col_current_stock">
+            <label for="col_current_stock">Aktueller Bestand</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="col_expected_stock">
+            <label for="col_expected_stock">Erwarteter Bestand</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="col_stock_last_updated">
+            <label for="col_stock_last_updated">Letzte Inventur</label>
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>Darstellung</h3>
+        <div class="checkbox-group">
+          <input type="checkbox" id="setting_highlight_discrepancies">
+          <label for="setting_highlight_discrepancies">Abweichungen hervorheben</label>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="setting_show_timestamps" checked>
+          <label for="setting_show_timestamps">Zeitstempel anzeigen</label>
+        </div>
+      </div>
+      <button id="saveSettings" class="button">Speichern</button>
     </div>
   </div>
   <script>

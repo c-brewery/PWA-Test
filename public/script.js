@@ -2,6 +2,25 @@ import { QRScanner } from "./qrScanner.js";
 import { FileHandler } from "./fileHandler.js";
 import { ModalHandler } from "./modalHandler.js";
 
+// Default settings
+const defaultSettings = {
+  columns: {
+    qr_code: true, // Always visible
+    name: true,
+    location: true,
+    description: false,
+    category: false,
+    current_stock: false,
+    expected_stock: false,
+    stock_last_updated: false
+  },
+  highlight_discrepancies: false,
+  show_timestamps: true
+};
+
+// Load settings from localStorage or use defaults
+let appSettings = JSON.parse(localStorage.getItem('appSettings')) || defaultSettings;
+
 document.addEventListener("DOMContentLoaded", () => {
   if (!Html5Qrcode) {
     console.error("Html5Qrcode is not loaded");
@@ -25,6 +44,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const openQrScannerBtn = document.getElementById("openQrScanner");
   const closeQrScannerBtn = document.getElementById("closeQrScanner");
   const reopenScannerButton = document.getElementById("reopenScannerButton");
+  const settingsButton = document.getElementById("settingsButton");
+  const settingsModal = document.getElementById("settingsModal");
+  const saveSettingsButton = document.getElementById("saveSettings");
+
+  // Initialize settings
+  initializeSettings();
+
+  // Settings event listeners
+  settingsButton.addEventListener("click", () => {
+    settingsModal.style.display = "block";
+  });
+
+  settingsModal.querySelector(".close").addEventListener("click", () => {
+    settingsModal.style.display = "none";
+  });
+
+  saveSettingsButton.addEventListener("click", () => {
+    saveSettings();
+    settingsModal.style.display = "none";
+    // Refresh table with new settings
+    if (cachedData && cachedData.data) {
+      displayJsonData(cachedData.data);
+    }
+  });
 
   // Initialize modal handler
   const modalHandler = new ModalHandler(
@@ -107,11 +150,63 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+function initializeSettings() {
+  // Set checkboxes based on current settings
+  for (const [key, value] of Object.entries(appSettings.columns)) {
+    const checkbox = document.getElementById(`col_${key}`);
+    if (checkbox) {
+      checkbox.checked = value;
+    }
+  }
+
+  document.getElementById('setting_highlight_discrepancies').checked = appSettings.highlight_discrepancies;
+  document.getElementById('setting_show_timestamps').checked = appSettings.show_timestamps;
+}
+
+function saveSettings() {
+  // Save column settings
+  for (const [key] of Object.entries(appSettings.columns)) {
+    const checkbox = document.getElementById(`col_${key}`);
+    if (checkbox && !checkbox.disabled) {
+      appSettings.columns[key] = checkbox.checked;
+    }
+  }
+
+  // Save other settings
+  appSettings.highlight_discrepancies = document.getElementById('setting_highlight_discrepancies').checked;
+  appSettings.show_timestamps = document.getElementById('setting_show_timestamps').checked;
+
+  // Save to localStorage
+  localStorage.setItem('appSettings', JSON.stringify(appSettings));
+}
+
 function displayJsonData(jsonData, highlightQrCode = null) {
   const tableBody = document.getElementById("tableBody");
+  const tableHead = document.querySelector(".sortable-table thead tr");
   tableBody.innerHTML = "";
+  tableHead.innerHTML = "";
 
   const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
+
+  // Update table headers based on visible columns
+  for (const [key, visible] of Object.entries(appSettings.columns)) {
+    if (visible) {
+      const th = document.createElement("th");
+      th.dataset.sort = key;
+      const displayName = {
+        qr_code: "QR Code",
+        name: "Name",
+        location: "Standort",
+        description: "Beschreibung",
+        category: "Kategorie",
+        current_stock: "Aktueller Bestand",
+        expected_stock: "Erwarteter Bestand",
+        stock_last_updated: "Letzte Inventur"
+      }[key];
+      th.innerHTML = `${displayName} <span class="sort-icon">↕</span>`;
+      tableHead.appendChild(th);
+    }
+  }
 
   dataArray.forEach((item) => {
     const row = document.createElement("tr");
@@ -119,18 +214,38 @@ function displayJsonData(jsonData, highlightQrCode = null) {
       row.classList.add("scanned-row");
     }
 
+    // Add stock discrepancy highlighting
+    if (appSettings.highlight_discrepancies && 
+        item.current_stock !== undefined && 
+        item.expected_stock !== undefined && 
+        item.current_stock !== item.expected_stock) {
+      row.classList.add("stock-discrepancy");
+    }
+
     // Check if stock_last_updated is valid
     const stockLastUpdated = new Date(item.stock_last_updated);
     const isValidStockUpdate = !isNaN(stockLastUpdated.getTime());
-    
-    row.innerHTML = `
-      <td>
-        ${isValidStockUpdate ? '<i class="fa fa-check-circle" style="color: #4CAF50; margin-right: 8px;"></i>' : ''}
-        ${item.qr_code || ""}
-      </td>
-      <td>${item.name || ""}</td>
-      <td>${item.location || ""}</td>
-    `;
+
+    // Build row content based on visible columns
+    let rowHtml = '';
+    for (const [key, visible] of Object.entries(appSettings.columns)) {
+      if (visible) {
+        if (key === 'qr_code') {
+          rowHtml += `
+            <td>
+              ${isValidStockUpdate ? '<i class="fa fa-check-circle" style="color: #4CAF50; margin-right: 8px;"></i>' : ''}
+              ${item[key] || ""}
+            </td>`;
+        } else if (key === 'stock_last_updated' && appSettings.show_timestamps) {
+          const date = new Date(item[key]);
+          rowHtml += `<td>${isValidStockUpdate ? date.toLocaleString() : ''}</td>`;
+        } else {
+          rowHtml += `<td>${item[key] || ""}</td>`;
+        }
+      }
+    }
+    row.innerHTML = rowHtml;
+
     row.style.cursor = "pointer";
     row.addEventListener("click", () => {
       const modalHandler = new ModalHandler(
@@ -155,6 +270,9 @@ function displayJsonData(jsonData, highlightQrCode = null) {
     });
     tableBody.appendChild(row);
   });
+
+  // Reinitialize table sorting
+  setupTableSorting();
 }
 
 function toggleDropdown() {
