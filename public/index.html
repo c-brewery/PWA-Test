@@ -31,8 +31,7 @@
   <main>
     <div id="content">
       <input type="file" id="jsonFileInput" accept=".json" style="display:none;" />
-      <div id="reader" style="width:100%; max-width:500px;"></div>
-      <a href="#reopen"><i class="fa fa-fw fa-qrcode"></i> Reopen QR Scanner</a>
+      <button id="openQrScanner" class="button"><i class="fa fa-fw fa-qrcode"></i> Open QR Scanner</button>
       <div id="qrCodeResult"></div>
       <table id="dataTable" class="sortable-table">
         <thead>
@@ -55,6 +54,12 @@
         <!-- Form fields will be dynamically generated -->
       </form>
       <button type="button" id="saveChangesButton">Save Changes</button>
+    </div>
+  </div>
+  <div id="qrScannerModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeQrScanner">&times;</span>
+      <div id="reader" style="width:100%; max-width:500px;"></div>
     </div>
   </div>
   <script>
