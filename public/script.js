@@ -11,6 +11,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const fileHandler = new FileHandler();
   const qrScanner = new QRScanner();
   
+  // Load cached data immediately and display it
+  const cachedData = fileHandler.loadCachedData();
+  if (cachedData && cachedData.data) {
+    displayJsonData(cachedData.data);
+  }
+
   // Initialize UI elements
   const uploadButton = document.getElementById("uploadButton");
   const downloadJsonButton = document.getElementById("downloadJsonButton");
@@ -99,13 +105,6 @@ document.addEventListener("DOMContentLoaded", () => {
       qrScannerModal.style.display = "none";
     }
   });
-
-  // Load cached data if available
-  const cachedData = fileHandler.loadCachedData();
-  if (cachedData) {
-    displayJsonData(cachedData.data);
-    document.getElementById("jsonOutput").style.display = "none";
-  }
 });
 
 function displayJsonData(jsonData, highlightQrCode = null) {
