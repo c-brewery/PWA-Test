@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stopQrScanner();
         const scannedData = inventoryData.find(item => item.qr_code === qrCodeMessage);
         if (scannedData) {
+          displayJsonData(inventoryData, qrCodeMessage);
           showModal(scannedData);
         } else {
           alert('QR code not found in inventory');
@@ -247,7 +248,7 @@ window.onclick = function(event) {
   }
 }
 
-function displayJsonData(jsonData) {
+function displayJsonData(jsonData, highlightQrCode = null) {
   const tableBody = document.getElementById('tableBody');
   tableBody.innerHTML = '';
   
@@ -256,6 +257,9 @@ function displayJsonData(jsonData) {
   
   dataArray.forEach(item => {
     const row = document.createElement('tr');
+    if (highlightQrCode && item.qr_code === highlightQrCode) {
+      row.classList.add('scanned-row');
+    }
     row.innerHTML = `
       <td>${item.qr_code || ''}</td>
       <td>${item.name || ''}</td>

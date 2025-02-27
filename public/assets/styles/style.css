@@ -257,6 +257,20 @@ button[type="button"]:hover {
   background-color: #e0e0e0;
 }
 
+.scanned-row {
+  background-color: #b3e0ff !important;
+  animation: highlight-fade 2s;
+}
+
+@keyframes highlight-fade {
+  from {
+    background-color: #4CAF50;
+  }
+  to {
+    background-color: #b3e0ff;
+  }
+}
+
 .button {
   padding: 10px 20px;
   margin: 10px 0;
