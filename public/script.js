@@ -47,9 +47,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const settingsButton = document.getElementById("settingsButton");
   const settingsModal = document.getElementById("settingsModal");
   const saveSettingsButton = document.getElementById("saveSettings");
+  const searchInput = document.getElementById("qrCodeResult");
+  const clearSearchButton = document.getElementById("clearSearch");
 
   // Initialize settings
   initializeSettings();
+
+  // Search functionality
+  searchInput.addEventListener("input", (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    filterTable(searchTerm);
+    clearSearchButton.style.display = searchTerm ? "block" : "none";
+  });
+
+  clearSearchButton.addEventListener("click", () => {
+    searchInput.value = "";
+    filterTable("");
+    clearSearchButton.style.display = "none";
+  });
 
   // Settings event listeners
   settingsButton.addEventListener("click", () => {
@@ -109,7 +124,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const handleQrCodeScan = (qrCodeMessage) => {
-    document.getElementById("qrCodeResult").textContent = qrCodeMessage;
+    searchInput.value = qrCodeMessage;
+    filterTable(qrCodeMessage);
+    clearSearchButton.style.display = "block";
+    
     qrScanner.stop().then(() => {
       qrScannerModal.style.display = "none";
       const scannedData = fileHandler.findItemByQRCode(qrCodeMessage);
@@ -338,3 +356,28 @@ function setupTableSorting() {
 
 // Initialisiere die Tabellensortierung nach dem Laden der Seite
 document.addEventListener("DOMContentLoaded", setupTableSorting);
+
+function filterTable(searchTerm) {
+  const rows = document.querySelectorAll("#tableBody tr");
+  const visibleColumns = Object.entries(appSettings.columns)
+    .filter(([_, visible]) => visible)
+    .map(([key]) => key);
+
+  rows.forEach(row => {
+    const cells = Array.from(row.getElementsByTagName("td"));
+    const textContent = cells
+      .map((cell, index) => ({
+        text: cell.textContent.toLowerCase(),
+        column: visibleColumns[index]
+      }))
+      .filter(({ column }) => ["qr_code", "name", "location"].includes(column))
+      .map(({ text }) => text)
+      .join(" ");
+
+    if (textContent.includes(searchTerm.toLowerCase())) {
+      row.classList.remove("row-hidden");
+    } else {
+      row.classList.add("row-hidden");
+    }
+  });
+}

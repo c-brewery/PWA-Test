@@ -33,7 +33,13 @@
     <div id="content">
       <input type="file" id="jsonFileInput" accept=".json" style="display:none;" />
       <button id="openQrScanner" class="button"><i class="fa fa-fw fa-qrcode"></i> Open QR Scanner</button>
-      <div id="qrCodeResult"></div>
+      <div class="search-container">
+        <i class="fa fa-search search-icon"></i>
+        <input type="text" id="qrCodeResult" class="search-input" placeholder="Suche nach QR-Code, Name oder Standort..." />
+        <button id="clearSearch" class="clear-button" style="display: none;">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
       <table id="dataTable" class="sortable-table">
         <thead>
           <tr>
