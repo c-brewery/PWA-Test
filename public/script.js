@@ -132,10 +132,16 @@ document.addEventListener("DOMContentLoaded", () => {
       qrScannerModal.style.display = "none";
       const scannedData = fileHandler.findItemByQRCode(qrCodeMessage);
       if (scannedData) {
-        displayJsonData(fileHandler.getData(), qrCodeMessage);
+        displayJsonData(fileHandler.getData());
+        // Ensure the row is visible after redisplaying the data
+        filterTable(qrCodeMessage);
         modalHandler.show(scannedData);
       } else {
         alert("QR code not found in inventory");
+        // Clear the search if QR code wasn't found
+        searchInput.value = "";
+        filterTable("");
+        clearSearchButton.style.display = "none";
       }
     });
   };
@@ -363,11 +369,13 @@ function filterTable(searchTerm) {
     .filter(([_, visible]) => visible)
     .map(([key]) => key);
 
+  let hasVisibleRows = false;
+
   rows.forEach(row => {
     const cells = Array.from(row.getElementsByTagName("td"));
     const textContent = cells
       .map((cell, index) => ({
-        text: cell.textContent.toLowerCase(),
+        text: cell.textContent.trim().toLowerCase(),
         column: visibleColumns[index]
       }))
       .filter(({ column }) => ["qr_code", "name", "location"].includes(column))
@@ -376,8 +384,31 @@ function filterTable(searchTerm) {
 
     if (textContent.includes(searchTerm.toLowerCase())) {
       row.classList.remove("row-hidden");
+      hasVisibleRows = true;
     } else {
       row.classList.add("row-hidden");
     }
   });
+
+  // If no rows are visible and we have a search term, show a message
+  const noResultsMessage = document.getElementById("noResultsMessage") || createNoResultsMessage();
+  if (!hasVisibleRows && searchTerm) {
+    noResultsMessage.style.display = "block";
+  } else {
+    noResultsMessage.style.display = "none";
+  }
+}
+
+function createNoResultsMessage() {
+  const message = document.createElement("div");
+  message.id = "noResultsMessage";
+  message.style.textAlign = "center";
+  message.style.padding = "20px";
+  message.style.color = "#666";
+  message.textContent = "Keine Ergebnisse gefunden";
+  
+  const table = document.querySelector(".sortable-table");
+  table.parentNode.insertBefore(message, table.nextSibling);
+  
+  return message;
 }
