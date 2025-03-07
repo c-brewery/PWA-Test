@@ -168,23 +168,57 @@ document.addEventListener("DOMContentLoaded", async () => {
   uploadButton.addEventListener("click", () => jsonFileInput.click());
 
   jsonFileInput.addEventListener("change", async (event) => {
+    if (!event.target.files || event.target.files.length === 0) {
+        return;
+    }
+
     try {
-      const data = await fileHandler.handleFileUpload(event.target.files[0]);
-      displayJsonData(data);
-      // Also update the IndexedDB
-      if (isDbReady) {
-        for (const item of data) {
-          await db.addItem(item);
+        const file = event.target.files[0];
+        const data = await fileHandler.handleFileUpload(file);
+        
+        // Update the file handler's data
+        fileHandler.data = data;
+        
+        // Update IndexedDB if ready
+        if (isDbReady) {
+            try {
+                // Clear existing data
+                const transaction = db.db.transaction(['inventory'], 'readwrite');
+                const store = transaction.objectStore('inventory');
+                await store.clear();
+
+                // Add new data
+                for (const item of data) {
+                    await db.addItem(item);
+                }
+            } catch (error) {
+                console.error('Error updating IndexedDB:', error);
+            }
         }
-      }
+
+        // Display the data
+        displayJsonData(data);
+        
+        // Clear the file input
+        event.target.value = '';
     } catch (error) {
-      console.error('Error uploading file:', error);
-      alert('Error uploading file: ' + error.message);
+        console.error('Error uploading file:', error);
+        alert('Error uploading file: ' + error.message);
     }
   });
 
   downloadJsonButton.addEventListener("click", () => {
-    fileHandler.downloadCurrentData('edited.json');
+    try {
+        const currentData = fileHandler.getData();
+        if (!currentData || currentData.length === 0) {
+            alert('No data available to download');
+            return;
+        }
+        fileHandler.downloadCurrentData('inventory.json');
+    } catch (error) {
+        console.error('Error downloading data:', error);
+        alert('Error downloading file: ' + error.message);
+    }
   });
 
   const handleQrCodeScan = (qrCodeMessage) => {
@@ -275,98 +309,118 @@ function saveSettings() {
 }
 
 function displayJsonData(jsonData, highlightQrCode = null) {
-  const tableBody = document.getElementById("tableBody");
-  const tableHead = document.querySelector(".sortable-table thead tr");
-  tableBody.innerHTML = "";
-  tableHead.innerHTML = "";
-
-  const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
-
-  // Update table headers based on visible columns
-  for (const [key, visible] of Object.entries(appSettings.columns)) {
-    if (visible) {
-      const th = document.createElement("th");
-      th.dataset.sort = key;
-      const displayName = {
-        qr_code: "QR Code",
-        name: "Name",
-        location: "Standort",
-        description: "Beschreibung",
-        category: "Kategorie",
-        current_stock: "Aktueller Bestand",
-        expected_stock: "Erwarteter Bestand",
-        stock_last_updated: "Letzte Inventur"
-      }[key];
-      th.innerHTML = `${displayName} <span class="sort-icon">↕</span>`;
-      tableHead.appendChild(th);
-    }
-  }
-
-  dataArray.forEach((item) => {
-    const row = document.createElement("tr");
-    if (highlightQrCode && item.qr_code === highlightQrCode) {
-      row.classList.add("scanned-row");
+    const tableBody = document.getElementById("tableBody");
+    const tableHead = document.querySelector(".sortable-table thead tr");
+    
+    if (!tableBody || !tableHead) {
+        console.error('Table elements not found');
+        return;
     }
 
-    // Add stock discrepancy highlighting
-    if (appSettings.highlight_discrepancies && 
-        item.current_stock !== undefined && 
-        item.expected_stock !== undefined && 
-        item.current_stock !== item.expected_stock) {
-      row.classList.add("stock-discrepancy");
+    // Clear existing content
+    tableBody.innerHTML = "";
+    tableHead.innerHTML = "";
+
+    // Ensure we have data to display
+    if (!jsonData) {
+        console.error('No data to display');
+        return;
     }
 
-    // Check if stock_last_updated is valid
-    const stockLastUpdated = new Date(item.stock_last_updated);
-    const isValidStockUpdate = !isNaN(stockLastUpdated.getTime());
+    const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
 
-    // Build row content based on visible columns
-    let rowHtml = '';
+    // Update table headers based on visible columns
     for (const [key, visible] of Object.entries(appSettings.columns)) {
-      if (visible) {
-        if (key === 'qr_code') {
-          rowHtml += `
-            <td>
-              ${isValidStockUpdate ? '<i class="fa fa-check-circle" style="color: #4CAF50; margin-right: 8px;"></i>' : ''}
-              ${item[key] || ""}
-            </td>`;
-        } else if (key === 'stock_last_updated' && appSettings.show_timestamps) {
-          const date = new Date(item[key]);
-          rowHtml += `<td>${isValidStockUpdate ? date.toLocaleString() : ''}</td>`;
-        } else {
-          rowHtml += `<td>${item[key] || ""}</td>`;
+        if (visible) {
+            const th = document.createElement("th");
+            th.dataset.sort = key;
+            const displayName = {
+                qr_code: "QR Code",
+                name: "Name",
+                location: "Standort",
+                description: "Beschreibung",
+                category: "Kategorie",
+                current_stock: "Aktueller Bestand",
+                expected_stock: "Erwarteter Bestand",
+                stock_last_updated: "Letzte Inventur"
+            }[key];
+            th.innerHTML = `${displayName} <span class="sort-icon">↕</span>`;
+            tableHead.appendChild(th);
         }
-      }
     }
-    row.innerHTML = rowHtml;
 
-    row.style.cursor = "pointer";
-    row.addEventListener("click", () => {
-      const modalHandler = new ModalHandler(
-        'modal',
-        'editForm',
-        '.close',
-        'saveChangesButton',
-        (formData) => {
-          const updatedData = { ...item };
-          for (const [key, value] of formData.entries()) {
-            updatedData[key] = key.includes('date') || key.includes('timestamp')
-              ? new Date(value).toISOString()
-              : typeof item[key] === 'number'
-              ? parseInt(value)
-              : value;
-          }
-          Object.assign(item, updatedData);
-          displayJsonData(dataArray);
+    // Add rows
+    dataArray.forEach((item) => {
+        const row = document.createElement("tr");
+        if (highlightQrCode && item.qr_code === highlightQrCode) {
+            row.classList.add("scanned-row");
         }
-      );
-      modalHandler.show(item);
-    });
-    tableBody.appendChild(row);
-  });
 
-  // Reinitialize table sorting
-  setupTableSorting();
+        // Add stock discrepancy highlighting
+        if (appSettings.highlight_discrepancies && 
+            item.current_stock !== undefined && 
+            item.expected_stock !== undefined && 
+            item.current_stock !== item.expected_stock) {
+            row.classList.add("stock-discrepancy");
+        }
+
+        // Check if stock_last_updated is valid
+        const stockLastUpdated = new Date(item.stock_last_updated);
+        const isValidStockUpdate = !isNaN(stockLastUpdated.getTime());
+
+        // Build row content based on visible columns
+        for (const [key, visible] of Object.entries(appSettings.columns)) {
+            if (visible) {
+                const td = document.createElement("td");
+                if (key === 'qr_code') {
+                    td.innerHTML = `
+                        ${isValidStockUpdate ? '<i class="fa fa-check-circle" style="color: #4CAF50; margin-right: 8px;"></i>' : ''}
+                        ${item[key] || ""}
+                    `;
+                } else if (key === 'stock_last_updated' && appSettings.show_timestamps) {
+                    td.textContent = isValidStockUpdate ? stockLastUpdated.toLocaleString() : '';
+                } else {
+                    td.textContent = item[key] || "";
+                }
+                row.appendChild(td);
+            }
+        }
+
+        row.style.cursor = "pointer";
+        row.addEventListener("click", () => {
+            const modalHandler = new ModalHandler(
+                'modal',
+                'editForm',
+                '.close',
+                'saveChangesButton',
+                async (formData) => {
+                    const updatedData = { ...item };
+                    for (const [key, value] of formData.entries()) {
+                        updatedData[key] = key.includes('date') || key.includes('timestamp')
+                            ? new Date(value).toISOString()
+                            : typeof item[key] === 'number'
+                            ? parseInt(value)
+                            : value;
+                    }
+                    Object.assign(item, updatedData);
+                    
+                    // Update the data in memory and storage
+                    fileHandler.saveToCache();
+                    if (isDbReady) {
+                        await db.updateItem(updatedData);
+                    }
+                    
+                    displayJsonData(dataArray);
+                }
+            );
+            modalHandler.show(item);
+        });
+
+        tableBody.appendChild(row);
+    });
+
+    // Reinitialize table sorting
+    setupTableSorting();
 }
 
 function toggleDropdown() {

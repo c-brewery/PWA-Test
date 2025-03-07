@@ -49,18 +49,20 @@ export class FileHandler {
               const store = transaction.objectStore('inventory');
               
               // Clear existing data
-              store.clear();
+              await new Promise((resolve, reject) => {
+                const clearRequest = store.clear();
+                clearRequest.onsuccess = () => resolve();
+                clearRequest.onerror = () => reject(clearRequest.error);
+              });
               
               // Add new data
-              const promises = this.data.map(item => {
-                return new Promise((resolve, reject) => {
-                  const request = store.put(item);
-                  request.onsuccess = () => resolve();
-                  request.onerror = () => reject(request.error);
+              for (const item of this.data) {
+                await new Promise((resolve, reject) => {
+                  const addRequest = store.add(item);
+                  addRequest.onsuccess = () => resolve();
+                  addRequest.onerror = () => reject(addRequest.error);
                 });
-              });
-
-              await Promise.all(promises);
+              }
             } catch (error) {
               console.error('Error storing in IndexedDB:', error);
             }
@@ -118,42 +120,21 @@ export class FileHandler {
     return this.data.find(item => item.qr_code === qrCode);
   }
 
-  async downloadCurrentData(filename) {
+  downloadCurrentData(filename) {
     try {
-      // Get the latest data from IndexedDB
-      if (this.db) {
-        const transaction = this.db.transaction(['inventory'], 'readonly');
-        const store = transaction.objectStore('inventory');
-        const request = store.getAll();
-        
-        request.onsuccess = () => {
-          const data = request.result;
-          const jsonString = JSON.stringify(data, null, 2);
-          const blob = new Blob([jsonString], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        };
-      } else {
-        // Fallback to memory data if IndexedDB is not available
-        const jsonString = JSON.stringify(this.data, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }
+      const jsonString = JSON.stringify(this.data, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading data:', error);
+      alert('Error downloading file: ' + error.message);
     }
   }
 }
