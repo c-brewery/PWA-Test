@@ -13,6 +13,7 @@ const STATIC_ASSETS = [
   '/qrScanner.js',
   '/fileHandler.js',
   '/modalHandler.js',
+  '/offlineDB.js',
   '/manifest.json',
   '/assets/icons/icon-192x192.png',
   '/assets/icons/icon-512x512.png',
@@ -30,6 +31,7 @@ self.addEventListener('install', event => {
         return cache.addAll(STATIC_ASSETS);
       })
   );
+  self.skipWaiting();
 });
 
 // Activate Event
@@ -46,33 +48,33 @@ self.addEventListener('activate', event => {
       );
     })
   );
+  return self.clients.claim();
 });
 
 // Fetch Event
 self.addEventListener('fetch', event => {
+  // Handle API requests differently
+  if (event.request.url.includes('/api/')) {
+    return handleApiRequest(event);
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(cacheResponse => {
-        // Return cached response if found
         if (cacheResponse) {
           return cacheResponse;
         }
 
-        // Clone the request because it can only be used once
         const fetchRequest = event.request.clone();
 
-        // Make network request and cache the response
         return fetch(fetchRequest)
           .then(response => {
-            // Check if we received a valid response
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
 
-            // Clone the response because it can only be used once
             const responseToCache = response.clone();
 
-            // Add the response to dynamic cache
             caches.open(DYNAMIC_CACHE_NAME)
               .then(cache => {
                 cache.put(event.request, responseToCache);
@@ -81,21 +83,100 @@ self.addEventListener('fetch', event => {
             return response;
           })
           .catch(() => {
-            // If offline and resource not in cache, return a fallback
             if (event.request.url.indexOf('.html') > -1) {
               return caches.match('/index.html');
             }
+            // Return offline fallback for other resources
+            return new Response('Offline content not available');
           });
       })
   );
 });
 
+// Handle API requests
+function handleApiRequest(event) {
+  // If online, try network first
+  if (navigator.onLine) {
+    return fetch(event.request)
+      .then(response => {
+        // Cache successful responses
+        if (response.ok) {
+          const responseToCache = response.clone();
+          caches.open(DYNAMIC_CACHE_NAME)
+            .then(cache => cache.put(event.request, responseToCache));
+        }
+        return response;
+      })
+      .catch(() => {
+        // If network fails, try cache
+        return caches.match(event.request);
+      });
+  } else {
+    // If offline, return from cache
+    return caches.match(event.request)
+      .then(response => {
+        return response || new Response(JSON.stringify({
+          error: 'You are offline. Changes will be synced when you are back online.'
+        }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      });
+  }
+}
+
 // Handle offline data sync
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-data') {
-    event.waitUntil(
-      // Add your data sync logic here
-      Promise.resolve()
-    );
+    event.waitUntil(syncData());
   }
 });
+
+async function syncData() {
+  try {
+    const db = await new Promise((resolve) => {
+      const request = indexedDB.open('inventoryDB');
+      request.onsuccess = (event) => resolve(event.target.result);
+    });
+
+    const transaction = db.transaction(['pendingChanges'], 'readonly');
+    const store = transaction.objectStore('pendingChanges');
+    const changes = await new Promise((resolve) => {
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result);
+    });
+
+    // Process each pending change
+    for (const change of changes) {
+      let response;
+      const endpoint = '/api/inventory'; // Update with your actual API endpoint
+
+      switch (change.type) {
+        case 'add':
+        case 'update':
+          response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(change.item)
+          });
+          break;
+        case 'delete':
+          response = await fetch(`${endpoint}/${change.qrCode}`, {
+            method: 'DELETE'
+          });
+          break;
+      }
+
+      if (response && response.ok) {
+        // Clear the successful change from pending store
+        const clearTx = db.transaction(['pendingChanges'], 'readwrite');
+        const clearStore = clearTx.objectStore('pendingChanges');
+        await clearStore.delete(change.id);
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Sync failed:', error);
+    return false;
+  }
+}

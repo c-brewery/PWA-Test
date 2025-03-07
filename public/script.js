@@ -1,6 +1,7 @@
 import { QRScanner } from "./qrScanner.js";
 import { FileHandler } from "./fileHandler.js";
 import { ModalHandler } from "./modalHandler.js";
+import { OfflineDB } from './offlineDB.js';
 
 // Default settings
 const defaultSettings = {
@@ -20,6 +21,18 @@ const defaultSettings = {
 
 // Load settings from localStorage or use defaults
 let appSettings = JSON.parse(localStorage.getItem('appSettings')) || defaultSettings;
+
+// Initialize offline database
+const db = new OfflineDB();
+
+// Wait for database to be ready
+let isDbReady = false;
+db.initDB().then(() => {
+    isDbReady = true;
+    loadInventoryData();
+}).catch(error => {
+    console.error('Failed to initialize database:', error);
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   if (!Html5Qrcode) {
@@ -412,3 +425,115 @@ function createNoResultsMessage() {
   
   return message;
 }
+
+// Load inventory data
+async function loadInventoryData() {
+    try {
+        // Try to fetch from network first
+        if (navigator.onLine) {
+            const response = await fetch('/api/inventory');
+            if (response.ok) {
+                const data = await response.json();
+                // Update local database
+                for (const item of data) {
+                    await db.addItem(item);
+                }
+                updateTable(data);
+                return;
+            }
+        }
+
+        // If offline or network request failed, load from IndexedDB
+        const items = await db.getAllItems();
+        updateTable(items);
+    } catch (error) {
+        console.error('Error loading inventory data:', error);
+        // If all else fails, try to load from IndexedDB
+        const items = await db.getAllItems();
+        updateTable(items);
+    }
+}
+
+// Update item
+async function updateInventoryItem(item) {
+    try {
+        await db.updateItem(item);
+        // Update UI immediately
+        await loadInventoryData();
+    } catch (error) {
+        console.error('Error updating item:', error);
+    }
+}
+
+// Add new item
+async function addInventoryItem(item) {
+    try {
+        await db.addItem(item);
+        // Update UI immediately
+        await loadInventoryData();
+    } catch (error) {
+        console.error('Error adding item:', error);
+    }
+}
+
+// Delete item
+async function deleteInventoryItem(qrCode) {
+    try {
+        await db.deleteItem(qrCode);
+        // Update UI immediately
+        await loadInventoryData();
+    } catch (error) {
+        console.error('Error deleting item:', error);
+    }
+}
+
+// Add offline status indicator
+function updateOnlineStatus() {
+    const statusElement = document.getElementById('onlineStatus') || createStatusElement();
+    if (navigator.onLine) {
+        statusElement.textContent = '🟢 Online';
+        statusElement.classList.remove('offline');
+        statusElement.classList.add('online');
+    } else {
+        statusElement.textContent = '🔴 Offline';
+        statusElement.classList.remove('online');
+        statusElement.classList.add('offline');
+    }
+}
+
+function createStatusElement() {
+    const statusElement = document.createElement('div');
+    statusElement.id = 'onlineStatus';
+    statusElement.style.position = 'fixed';
+    statusElement.style.top = '10px';
+    statusElement.style.right = '10px';
+    statusElement.style.padding = '5px 10px';
+    statusElement.style.borderRadius = '5px';
+    statusElement.style.fontSize = '14px';
+    document.body.appendChild(statusElement);
+    return statusElement;
+}
+
+// Listen for online/offline events
+window.addEventListener('online', () => {
+    updateOnlineStatus();
+    // Trigger sync when we come back online
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+            registration.sync.register('sync-data');
+        });
+    }
+});
+
+window.addEventListener('offline', updateOnlineStatus);
+
+// Initial online status check
+updateOnlineStatus();
+
+// Export functions for use in other modules
+export {
+    loadInventoryData,
+    updateInventoryItem,
+    addInventoryItem,
+    deleteInventoryItem
+};
