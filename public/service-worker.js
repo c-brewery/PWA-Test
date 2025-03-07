@@ -1,6 +1,6 @@
-const CACHE_NAME = 'pwa-test-cache-v1';
-const STATIC_CACHE_NAME = 'static-cache-v1';
-const DYNAMIC_CACHE_NAME = 'dynamic-cache-v1';
+const CACHE_NAME = 'pwa-test-cache-v2';
+const STATIC_CACHE_NAME = 'static-cache-v2';
+const DYNAMIC_CACHE_NAME = 'dynamic-cache-v2';
 
 const STATIC_ASSETS = [
   '/',
@@ -19,6 +19,7 @@ const STATIC_ASSETS = [
   '/assets/icons/icon-512x512.png',
   '/html5-qrcode.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2',
   '/stock.json'
 ];
 
@@ -30,7 +31,6 @@ self.addEventListener('install', event => {
         console.log('Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       }),
-      // Ensure the service worker takes control immediately
       self.skipWaiting()
     ])
   );
@@ -43,23 +43,27 @@ self.addEventListener('activate', event => {
       caches.keys().then(keys => {
         return Promise.all(
           keys.map(key => {
-            if (key !== STATIC_CACHE_NAME && key !== DYNAMIC_CACHE_NAME) {
+            if (!key.includes(STATIC_CACHE_NAME) && !key.includes(DYNAMIC_CACHE_NAME)) {
               console.log('Deleting old cache', key);
               return caches.delete(key);
             }
           })
         );
       }),
-      // Ensure the service worker takes control of all clients
       self.clients.claim()
     ])
   );
 });
 
-// Fetch Event - Network first with cache fallback for API requests, Cache first for static assets
+// Fetch Event - Cache first for static assets, Network first for API requests
 self.addEventListener('fetch', event => {
-  // Skip cross-origin requests
-  if (!event.request.url.startsWith(self.location.origin) && !event.request.url.includes('cdnjs.cloudflare.com')) {
+  // Handle navigation requests differently
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match('/index.html');
+      })
+    );
     return;
   }
 
@@ -69,20 +73,17 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Handle static assets and other requests
+  // Handle all other requests with cache-first strategy
   event.respondWith(
     caches.match(event.request)
       .then(cachedResponse => {
         if (cachedResponse) {
-          // Return cached response immediately
           return cachedResponse;
         }
 
-        // If not in cache, try network
         return fetch(event.request.clone())
           .then(response => {
-            // Check if we received a valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
+            if (!response || response.status !== 200) {
               return response;
             }
 
@@ -95,21 +96,27 @@ self.addEventListener('fetch', event => {
 
             return response;
           })
-          .catch(() => {
-            // If network fails and it's an HTML request, return offline page
-            if (event.request.headers.get('accept').includes('text/html')) {
-              return caches.match('/index.html');
+          .catch(error => {
+            console.error('Fetch failed:', error);
+            // Return a custom offline response for different file types
+            if (event.request.url.endsWith('.js')) {
+              return new Response('console.log("Offline mode - JS file not available");', {
+                headers: { 'Content-Type': 'application/javascript' }
+              });
+            } else if (event.request.url.endsWith('.css')) {
+              return new Response('/* Offline mode - CSS file not available */', {
+                headers: { 'Content-Type': 'text/css' }
+              });
+            } else {
+              return new Response('Offline content not available', {
+                status: 503,
+                statusText: 'Service Unavailable',
+                headers: new Headers({
+                  'Content-Type': 'text/plain',
+                  'Cache-Control': 'no-store'
+                })
+              });
             }
-            
-            // For other resources, return a simple offline response
-            return new Response('Offline content not available', {
-              status: 503,
-              statusText: 'Service Unavailable',
-              headers: new Headers({
-                'Content-Type': 'text/plain',
-                'Cache-Control': 'no-store'
-              })
-            });
           });
       })
   );

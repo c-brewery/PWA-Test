@@ -41,8 +41,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const fileHandler = new FileHandler();
-  const qrScanner = new QRScanner();
+  let qrScanner = null;
   
+  // Initialize UI elements first
+  const uploadButton = document.getElementById("uploadButton");
+  const downloadJsonButton = document.getElementById("downloadJsonButton");
+  const jsonFileInput = document.getElementById("jsonFileInput");
+  const qrScannerModal = document.getElementById("qrScannerModal");
+  const openQrScannerBtn = document.getElementById("openQrScanner");
+  const closeQrScannerBtn = document.getElementById("closeQrScanner");
+  const reopenScannerButton = document.getElementById("reopenScannerButton");
+  const settingsButton = document.getElementById("settingsButton");
+  const settingsModal = document.getElementById("settingsModal");
+  const saveSettingsButton = document.getElementById("saveSettings");
+  const searchInput = document.getElementById("qrCodeResult");
+  const clearSearchButton = document.getElementById("clearSearch");
+  const myLinks = document.getElementById("myLinks");
+
+  // Initialize settings
+  initializeSettings();
+
+  // Initialize QR Scanner only when needed
+  const initQRScanner = async () => {
+    if (!qrScanner) {
+      try {
+        qrScanner = new QRScanner();
+        await qrScanner.initialize(handleQrCodeScan);
+      } catch (error) {
+        console.error('Failed to initialize QR Scanner:', error);
+        alert('Could not initialize QR Scanner: ' + error.message);
+      }
+    }
+    return qrScanner;
+  };
+
   // Load data from IndexedDB first
   if (isDbReady) {
     try {
@@ -70,22 +102,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Initialize UI elements
-  const uploadButton = document.getElementById("uploadButton");
-  const downloadJsonButton = document.getElementById("downloadJsonButton");
-  const jsonFileInput = document.getElementById("jsonFileInput");
-  const qrScannerModal = document.getElementById("qrScannerModal");
-  const openQrScannerBtn = document.getElementById("openQrScanner");
-  const closeQrScannerBtn = document.getElementById("closeQrScanner");
-  const reopenScannerButton = document.getElementById("reopenScannerButton");
-  const settingsButton = document.getElementById("settingsButton");
-  const settingsModal = document.getElementById("settingsModal");
-  const saveSettingsButton = document.getElementById("saveSettings");
-  const searchInput = document.getElementById("qrCodeResult");
-  const clearSearchButton = document.getElementById("clearSearch");
-
-  // Initialize settings
-  initializeSettings();
+  // Toggle navbar function
+  window.toggleNavbar = function() {
+    if (myLinks.style.display === "block") {
+      myLinks.style.display = "none";
+    } else {
+      myLinks.style.display = "block";
+    }
+  };
 
   // Search functionality
   searchInput.addEventListener("input", (e) => {
@@ -140,16 +164,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   );
 
-  // Event Listeners
+  // File upload handling
   uploadButton.addEventListener("click", () => jsonFileInput.click());
 
   jsonFileInput.addEventListener("change", async (event) => {
     try {
       const data = await fileHandler.handleFileUpload(event.target.files[0]);
       displayJsonData(data);
-      document.getElementById("jsonOutput").style.display = "none";
+      // Also update the IndexedDB
+      if (isDbReady) {
+        for (const item of data) {
+          await db.addItem(item);
+        }
+      }
     } catch (error) {
-      document.getElementById("jsonOutput").textContent = error.message;
+      console.error('Error uploading file:', error);
+      alert('Error uploading file: ' + error.message);
     }
   });
 
@@ -180,20 +210,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   };
 
+  // QR Scanner handling
   openQrScannerBtn.addEventListener("click", async () => {
     qrScannerModal.style.display = "block";
     try {
-      await qrScanner.initialize(handleQrCodeScan);
+      const scanner = await initQRScanner();
+      if (scanner) {
+        await scanner.start();
+      }
     } catch (error) {
-      alert(error.message);
+      console.error('Error starting QR Scanner:', error);
       qrScannerModal.style.display = "none";
+      alert('Could not start QR Scanner: ' + error.message);
     }
   });
 
-  closeQrScannerBtn.addEventListener("click", () => {
-    qrScanner.stop().then(() => {
-      qrScannerModal.style.display = "none";
-    });
+  closeQrScannerBtn.addEventListener("click", async () => {
+    if (qrScanner) {
+      await qrScanner.stop();
+    }
+    qrScannerModal.style.display = "none";
   });
 
   reopenScannerButton.addEventListener("click", async () => {
