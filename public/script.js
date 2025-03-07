@@ -34,7 +34,7 @@ db.initDB().then(() => {
     console.error('Failed to initialize database:', error);
 });
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   if (!Html5Qrcode) {
     console.error("Html5Qrcode is not loaded");
     return;
@@ -43,10 +43,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const fileHandler = new FileHandler();
   const qrScanner = new QRScanner();
   
-  // Load cached data immediately and display it
-  const cachedData = fileHandler.loadCachedData();
-  if (cachedData && cachedData.data) {
-    displayJsonData(cachedData.data);
+  // Load data from IndexedDB first
+  if (isDbReady) {
+    try {
+      const items = await db.getAllItems();
+      if (items && items.length > 0) {
+        displayJsonData(items);
+      } else {
+        // If no data in IndexedDB, try loading from cache
+        const cachedData = fileHandler.loadCachedData();
+        if (cachedData && cachedData.data) {
+          displayJsonData(cachedData.data);
+          // Store the cached data in IndexedDB
+          for (const item of cachedData.data) {
+            await db.addItem(item);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+      // Fallback to cached data if IndexedDB fails
+      const cachedData = fileHandler.loadCachedData();
+      if (cachedData && cachedData.data) {
+        displayJsonData(cachedData.data);
+      }
+    }
   }
 
   // Initialize UI elements
