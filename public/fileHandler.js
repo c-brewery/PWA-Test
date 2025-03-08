@@ -3,6 +3,11 @@ export class FileHandler {
     this.lastLoadedFileKey = 'lastLoadedFile';
     this.cachedDataKey = 'cachedInventoryData';
     this.inventoryData = [];
+    // Load cached data on initialization
+    const cachedData = this.loadCachedData();
+    if (cachedData && cachedData.data) {
+      this.inventoryData = cachedData.data;
+    }
   }
 
   handleFileUpload(file) {
@@ -20,7 +25,7 @@ export class FileHandler {
           const jsonContent = e.target.result;
           const parsedData = JSON.parse(jsonContent);
           this.inventoryData = parsedData.inventory || [];
-          localStorage.setItem(this.cachedDataKey, JSON.stringify(this.inventoryData));
+          this.saveToCache();
           resolve(this.inventoryData);
         } catch (error) {
           reject(new Error('Invalid JSON file'));
@@ -36,11 +41,12 @@ export class FileHandler {
     const lastLoadedFile = localStorage.getItem(this.lastLoadedFileKey);
     const cachedData = localStorage.getItem(this.cachedDataKey);
     
-    if (lastLoadedFile && cachedData) {
+    if (cachedData) {
       try {
-        this.inventoryData = JSON.parse(cachedData);
+        const parsedData = JSON.parse(cachedData);
+        this.inventoryData = parsedData;
         return {
-          fileName: lastLoadedFile,
+          fileName: lastLoadedFile || 'inventory.json',
           data: this.inventoryData
         };
       } catch (error) {
