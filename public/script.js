@@ -100,11 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ? parseInt(value)
             : value;
         }
-        const currentData = fileHandler.getData();
-        const updatedData = currentData.map(dataItem => 
-          dataItem.qr_code === item.qr_code ? item : dataItem
-        );
-        fileHandler.updateData(updatedData);
+        fileHandler.saveToCache();
         displayJsonData(fileHandler.getData());
       }
     }
@@ -282,22 +278,16 @@ function displayJsonData(jsonData, highlightQrCode = null) {
         '.close',
         'saveChangesButton',
         (formData) => {
-          const item = fileHandler.findItemByQRCode(formData.get('qr_code'));
-          if (item) {
-            for (const [key, value] of formData.entries()) {
-              item[key] = key.includes('date') || key.includes('timestamp')
-                ? new Date(value).toISOString()
-                : typeof item[key] === 'number'
-                ? parseInt(value)
-                : value;
-            }
-            const currentData = fileHandler.getData();
-            const updatedData = currentData.map(dataItem => 
-              dataItem.qr_code === item.qr_code ? item : dataItem
-            );
-            fileHandler.updateData(updatedData);
-            displayJsonData(fileHandler.getData());
+          const updatedData = { ...item };
+          for (const [key, value] of formData.entries()) {
+            updatedData[key] = key.includes('date') || key.includes('timestamp')
+              ? new Date(value).toISOString()
+              : typeof item[key] === 'number'
+              ? parseInt(value)
+              : value;
           }
+          Object.assign(item, updatedData);
+          displayJsonData(dataArray);
         }
       );
       modalHandler.show(item);
