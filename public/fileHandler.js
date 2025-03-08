@@ -44,8 +44,7 @@ export class FileHandler {
     if (cachedData) {
       try {
         const parsedData = JSON.parse(cachedData);
-        // Ensure we're getting the inventory array from the cached data
-        this.inventoryData = parsedData.inventory || parsedData || [];
+        this.inventoryData = parsedData;
         return {
           fileName: lastLoadedFile || 'inventory.json',
           data: this.inventoryData
@@ -58,8 +57,7 @@ export class FileHandler {
   }
 
   saveToCache() {
-    // Save with the same structure as the input JSON file
-    localStorage.setItem(this.cachedDataKey, JSON.stringify({ inventory: this.inventoryData }));
+    localStorage.setItem(this.cachedDataKey, JSON.stringify(this.inventoryData));
   }
 
   downloadCurrentData(filename = 'inventory.json') {

@@ -20,8 +20,6 @@ const defaultSettings = {
 
 // Load settings from localStorage or use defaults
 let appSettings = JSON.parse(localStorage.getItem('appSettings')) || defaultSettings;
-let fileHandler;
-let modalHandler;
 
 document.addEventListener("DOMContentLoaded", () => {
   if (!Html5Qrcode) {
@@ -29,34 +27,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  fileHandler = new FileHandler();
+  const fileHandler = new FileHandler();
   const qrScanner = new QRScanner();
-  
-  // Initialize modal handler
-  modalHandler = new ModalHandler(
-    'modal',
-    'editForm',
-    '.close',
-    'saveChangesButton',
-    (formData) => {
-      const item = fileHandler.findItemByQRCode(formData.get('qr_code'));
-      if (item) {
-        for (const [key, value] of formData.entries()) {
-          item[key] = key.includes('date') || key.includes('timestamp')
-            ? new Date(value).toISOString()
-            : typeof item[key] === 'number'
-            ? parseInt(value)
-            : value;
-        }
-        const currentData = fileHandler.getData();
-        const updatedData = currentData.map(dataItem => 
-          dataItem.qr_code === item.qr_code ? item : dataItem
-        );
-        fileHandler.updateData(updatedData);
-        displayJsonData(fileHandler.getData());
-      }
-    }
-  );
   
   // Load cached data immediately and display it
   const cachedData = fileHandler.loadCachedData();
@@ -111,6 +83,32 @@ document.addEventListener("DOMContentLoaded", () => {
       displayJsonData(cachedData.data);
     }
   });
+
+  // Initialize modal handler
+  const modalHandler = new ModalHandler(
+    'modal',
+    'editForm',
+    '.close',
+    'saveChangesButton',
+    (formData) => {
+      const item = fileHandler.findItemByQRCode(formData.get('qr_code'));
+      if (item) {
+        for (const [key, value] of formData.entries()) {
+          item[key] = key.includes('date') || key.includes('timestamp')
+            ? new Date(value).toISOString()
+            : typeof item[key] === 'number'
+            ? parseInt(value)
+            : value;
+        }
+        const currentData = fileHandler.getData();
+        const updatedData = currentData.map(dataItem => 
+          dataItem.qr_code === item.qr_code ? item : dataItem
+        );
+        fileHandler.updateData(updatedData);
+        displayJsonData(fileHandler.getData());
+      }
+    }
+  );
 
   // Event Listeners
   uploadButton.addEventListener("click", () => jsonFileInput.click());
@@ -278,6 +276,30 @@ function displayJsonData(jsonData, highlightQrCode = null) {
 
     row.style.cursor = "pointer";
     row.addEventListener("click", () => {
+      const modalHandler = new ModalHandler(
+        'modal',
+        'editForm',
+        '.close',
+        'saveChangesButton',
+        (formData) => {
+          const item = fileHandler.findItemByQRCode(formData.get('qr_code'));
+          if (item) {
+            for (const [key, value] of formData.entries()) {
+              item[key] = key.includes('date') || key.includes('timestamp')
+                ? new Date(value).toISOString()
+                : typeof item[key] === 'number'
+                ? parseInt(value)
+                : value;
+            }
+            const currentData = fileHandler.getData();
+            const updatedData = currentData.map(dataItem => 
+              dataItem.qr_code === item.qr_code ? item : dataItem
+            );
+            fileHandler.updateData(updatedData);
+            displayJsonData(fileHandler.getData());
+          }
+        }
+      );
       modalHandler.show(item);
     });
     tableBody.appendChild(row);
