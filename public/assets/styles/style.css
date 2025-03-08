@@ -524,21 +524,3 @@ button:hover {
     font-size: 14px;
   }
 }
-
-#onlineStatus {
-  z-index: 1000;
-  font-weight: bold;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-#onlineStatus.online {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-  border: 1px solid #a5d6a7;
-}
-
-#onlineStatus.offline {
-  background-color: #ffebee;
-  color: #c62828;
-  border: 1px solid #ef9a9a;
-}

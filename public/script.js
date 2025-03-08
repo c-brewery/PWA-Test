@@ -1,7 +1,6 @@
 import { QRScanner } from "./qrScanner.js";
 import { FileHandler } from "./fileHandler.js";
 import { ModalHandler } from "./modalHandler.js";
-import { OfflineDB } from './offlineDB.js';
 
 // Default settings
 const defaultSettings = {
@@ -22,28 +21,22 @@ const defaultSettings = {
 // Load settings from localStorage or use defaults
 let appSettings = JSON.parse(localStorage.getItem('appSettings')) || defaultSettings;
 
-// Initialize offline database
-const db = new OfflineDB();
-
-// Wait for database to be ready
-let isDbReady = false;
-db.initDB().then(() => {
-    isDbReady = true;
-    loadInventoryData();
-}).catch(error => {
-    console.error('Failed to initialize database:', error);
-});
-
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
   if (!Html5Qrcode) {
     console.error("Html5Qrcode is not loaded");
     return;
   }
 
   const fileHandler = new FileHandler();
-  let qrScanner = null;
+  const qrScanner = new QRScanner();
   
-  // Initialize UI elements first
+  // Load cached data immediately and display it
+  const cachedData = fileHandler.loadCachedData();
+  if (cachedData && cachedData.data) {
+    displayJsonData(cachedData.data);
+  }
+
+  // Initialize UI elements
   const uploadButton = document.getElementById("uploadButton");
   const downloadJsonButton = document.getElementById("downloadJsonButton");
   const jsonFileInput = document.getElementById("jsonFileInput");
@@ -56,60 +49,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const saveSettingsButton = document.getElementById("saveSettings");
   const searchInput = document.getElementById("qrCodeResult");
   const clearSearchButton = document.getElementById("clearSearch");
-  const myLinks = document.getElementById("myLinks");
 
   // Initialize settings
   initializeSettings();
-
-  // Initialize QR Scanner only when needed
-  const initQRScanner = async () => {
-    if (!qrScanner) {
-      try {
-        qrScanner = new QRScanner();
-        await qrScanner.initialize(handleQrCodeScan);
-      } catch (error) {
-        console.error('Failed to initialize QR Scanner:', error);
-        alert('Could not initialize QR Scanner: ' + error.message);
-      }
-    }
-    return qrScanner;
-  };
-
-  // Load data from IndexedDB first
-  if (isDbReady) {
-    try {
-      const items = await db.getAllItems();
-      if (items && items.length > 0) {
-        displayJsonData(items);
-      } else {
-        // If no data in IndexedDB, try loading from cache
-        const cachedData = fileHandler.loadCachedData();
-        if (cachedData && cachedData.data) {
-          displayJsonData(cachedData.data);
-          // Store the cached data in IndexedDB
-          for (const item of cachedData.data) {
-            await db.addItem(item);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error loading data:', error);
-      // Fallback to cached data if IndexedDB fails
-      const cachedData = fileHandler.loadCachedData();
-      if (cachedData && cachedData.data) {
-        displayJsonData(cachedData.data);
-      }
-    }
-  }
-
-  // Toggle navbar function
-  window.toggleNavbar = function() {
-    if (myLinks.style.display === "block") {
-      myLinks.style.display = "none";
-    } else {
-      myLinks.style.display = "block";
-    }
-  };
 
   // Search functionality
   searchInput.addEventListener("input", (e) => {
@@ -164,61 +106,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   );
 
-  // File upload handling
+  // Event Listeners
   uploadButton.addEventListener("click", () => jsonFileInput.click());
 
   jsonFileInput.addEventListener("change", async (event) => {
-    if (!event.target.files || event.target.files.length === 0) {
-        return;
-    }
-
     try {
-        const file = event.target.files[0];
-        const data = await fileHandler.handleFileUpload(file);
-        
-        // Update the file handler's data
-        fileHandler.data = data;
-        
-        // Update IndexedDB if ready
-        if (isDbReady) {
-            try {
-                // Clear existing data
-                const transaction = db.db.transaction(['inventory'], 'readwrite');
-                const store = transaction.objectStore('inventory');
-                await store.clear();
-
-                // Add new data
-                for (const item of data) {
-                    await db.addItem(item);
-                }
-            } catch (error) {
-                console.error('Error updating IndexedDB:', error);
-            }
-        }
-
-        // Display the data
-        displayJsonData(data);
-        
-        // Clear the file input
-        event.target.value = '';
+      const data = await fileHandler.handleFileUpload(event.target.files[0]);
+      displayJsonData(data);
+      document.getElementById("jsonOutput").style.display = "none";
     } catch (error) {
-        console.error('Error uploading file:', error);
-        alert('Error uploading file: ' + error.message);
+      document.getElementById("jsonOutput").textContent = error.message;
     }
   });
 
   downloadJsonButton.addEventListener("click", () => {
-    try {
-        const currentData = fileHandler.getData();
-        if (!currentData || currentData.length === 0) {
-            alert('No data available to download');
-            return;
-        }
-        fileHandler.downloadCurrentData('inventory.json');
-    } catch (error) {
-        console.error('Error downloading data:', error);
-        alert('Error downloading file: ' + error.message);
-    }
+    fileHandler.downloadCurrentData('edited.json');
   });
 
   const handleQrCodeScan = (qrCodeMessage) => {
@@ -244,26 +146,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   };
 
-  // QR Scanner handling
   openQrScannerBtn.addEventListener("click", async () => {
     qrScannerModal.style.display = "block";
     try {
-      const scanner = await initQRScanner();
-      if (scanner) {
-        await scanner.start();
-      }
+      await qrScanner.initialize(handleQrCodeScan);
     } catch (error) {
-      console.error('Error starting QR Scanner:', error);
+      alert(error.message);
       qrScannerModal.style.display = "none";
-      alert('Could not start QR Scanner: ' + error.message);
     }
   });
 
-  closeQrScannerBtn.addEventListener("click", async () => {
-    if (qrScanner) {
-      await qrScanner.stop();
-    }
-    qrScannerModal.style.display = "none";
+  closeQrScannerBtn.addEventListener("click", () => {
+    qrScanner.stop().then(() => {
+      qrScannerModal.style.display = "none";
+    });
   });
 
   reopenScannerButton.addEventListener("click", async () => {
@@ -309,118 +205,98 @@ function saveSettings() {
 }
 
 function displayJsonData(jsonData, highlightQrCode = null) {
-    const tableBody = document.getElementById("tableBody");
-    const tableHead = document.querySelector(".sortable-table thead tr");
-    
-    if (!tableBody || !tableHead) {
-        console.error('Table elements not found');
-        return;
+  const tableBody = document.getElementById("tableBody");
+  const tableHead = document.querySelector(".sortable-table thead tr");
+  tableBody.innerHTML = "";
+  tableHead.innerHTML = "";
+
+  const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
+
+  // Update table headers based on visible columns
+  for (const [key, visible] of Object.entries(appSettings.columns)) {
+    if (visible) {
+      const th = document.createElement("th");
+      th.dataset.sort = key;
+      const displayName = {
+        qr_code: "QR Code",
+        name: "Name",
+        location: "Standort",
+        description: "Beschreibung",
+        category: "Kategorie",
+        current_stock: "Aktueller Bestand",
+        expected_stock: "Erwarteter Bestand",
+        stock_last_updated: "Letzte Inventur"
+      }[key];
+      th.innerHTML = `${displayName} <span class="sort-icon">↕</span>`;
+      tableHead.appendChild(th);
+    }
+  }
+
+  dataArray.forEach((item) => {
+    const row = document.createElement("tr");
+    if (highlightQrCode && item.qr_code === highlightQrCode) {
+      row.classList.add("scanned-row");
     }
 
-    // Clear existing content
-    tableBody.innerHTML = "";
-    tableHead.innerHTML = "";
-
-    // Ensure we have data to display
-    if (!jsonData) {
-        console.error('No data to display');
-        return;
+    // Add stock discrepancy highlighting
+    if (appSettings.highlight_discrepancies && 
+        item.current_stock !== undefined && 
+        item.expected_stock !== undefined && 
+        item.current_stock !== item.expected_stock) {
+      row.classList.add("stock-discrepancy");
     }
 
-    const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
+    // Check if stock_last_updated is valid
+    const stockLastUpdated = new Date(item.stock_last_updated);
+    const isValidStockUpdate = !isNaN(stockLastUpdated.getTime());
 
-    // Update table headers based on visible columns
+    // Build row content based on visible columns
+    let rowHtml = '';
     for (const [key, visible] of Object.entries(appSettings.columns)) {
-        if (visible) {
-            const th = document.createElement("th");
-            th.dataset.sort = key;
-            const displayName = {
-                qr_code: "QR Code",
-                name: "Name",
-                location: "Standort",
-                description: "Beschreibung",
-                category: "Kategorie",
-                current_stock: "Aktueller Bestand",
-                expected_stock: "Erwarteter Bestand",
-                stock_last_updated: "Letzte Inventur"
-            }[key];
-            th.innerHTML = `${displayName} <span class="sort-icon">↕</span>`;
-            tableHead.appendChild(th);
+      if (visible) {
+        if (key === 'qr_code') {
+          rowHtml += `
+            <td>
+              ${isValidStockUpdate ? '<i class="fa fa-check-circle" style="color: #4CAF50; margin-right: 8px;"></i>' : ''}
+              ${item[key] || ""}
+            </td>`;
+        } else if (key === 'stock_last_updated' && appSettings.show_timestamps) {
+          const date = new Date(item[key]);
+          rowHtml += `<td>${isValidStockUpdate ? date.toLocaleString() : ''}</td>`;
+        } else {
+          rowHtml += `<td>${item[key] || ""}</td>`;
         }
+      }
     }
+    row.innerHTML = rowHtml;
 
-    // Add rows
-    dataArray.forEach((item) => {
-        const row = document.createElement("tr");
-        if (highlightQrCode && item.qr_code === highlightQrCode) {
-            row.classList.add("scanned-row");
+    row.style.cursor = "pointer";
+    row.addEventListener("click", () => {
+      const modalHandler = new ModalHandler(
+        'modal',
+        'editForm',
+        '.close',
+        'saveChangesButton',
+        (formData) => {
+          const updatedData = { ...item };
+          for (const [key, value] of formData.entries()) {
+            updatedData[key] = key.includes('date') || key.includes('timestamp')
+              ? new Date(value).toISOString()
+              : typeof item[key] === 'number'
+              ? parseInt(value)
+              : value;
+          }
+          Object.assign(item, updatedData);
+          displayJsonData(dataArray);
         }
-
-        // Add stock discrepancy highlighting
-        if (appSettings.highlight_discrepancies && 
-            item.current_stock !== undefined && 
-            item.expected_stock !== undefined && 
-            item.current_stock !== item.expected_stock) {
-            row.classList.add("stock-discrepancy");
-        }
-
-        // Check if stock_last_updated is valid
-        const stockLastUpdated = new Date(item.stock_last_updated);
-        const isValidStockUpdate = !isNaN(stockLastUpdated.getTime());
-
-        // Build row content based on visible columns
-        for (const [key, visible] of Object.entries(appSettings.columns)) {
-            if (visible) {
-                const td = document.createElement("td");
-                if (key === 'qr_code') {
-                    td.innerHTML = `
-                        ${isValidStockUpdate ? '<i class="fa fa-check-circle" style="color: #4CAF50; margin-right: 8px;"></i>' : ''}
-                        ${item[key] || ""}
-                    `;
-                } else if (key === 'stock_last_updated' && appSettings.show_timestamps) {
-                    td.textContent = isValidStockUpdate ? stockLastUpdated.toLocaleString() : '';
-                } else {
-                    td.textContent = item[key] || "";
-                }
-                row.appendChild(td);
-            }
-        }
-
-        row.style.cursor = "pointer";
-        row.addEventListener("click", () => {
-            const modalHandler = new ModalHandler(
-                'modal',
-                'editForm',
-                '.close',
-                'saveChangesButton',
-                async (formData) => {
-                    const updatedData = { ...item };
-                    for (const [key, value] of formData.entries()) {
-                        updatedData[key] = key.includes('date') || key.includes('timestamp')
-                            ? new Date(value).toISOString()
-                            : typeof item[key] === 'number'
-                            ? parseInt(value)
-                            : value;
-                    }
-                    Object.assign(item, updatedData);
-                    
-                    // Update the data in memory and storage
-                    fileHandler.saveToCache();
-                    if (isDbReady) {
-                        await db.updateItem(updatedData);
-                    }
-                    
-                    displayJsonData(dataArray);
-                }
-            );
-            modalHandler.show(item);
-        });
-
-        tableBody.appendChild(row);
+      );
+      modalHandler.show(item);
     });
+    tableBody.appendChild(row);
+  });
 
-    // Reinitialize table sorting
-    setupTableSorting();
+  // Reinitialize table sorting
+  setupTableSorting();
 }
 
 function toggleDropdown() {
@@ -536,115 +412,3 @@ function createNoResultsMessage() {
   
   return message;
 }
-
-// Load inventory data
-async function loadInventoryData() {
-    try {
-        // Try to fetch from network first
-        if (navigator.onLine) {
-            const response = await fetch('/api/inventory');
-            if (response.ok) {
-                const data = await response.json();
-                // Update local database
-                for (const item of data) {
-                    await db.addItem(item);
-                }
-                updateTable(data);
-                return;
-            }
-        }
-
-        // If offline or network request failed, load from IndexedDB
-        const items = await db.getAllItems();
-        updateTable(items);
-    } catch (error) {
-        console.error('Error loading inventory data:', error);
-        // If all else fails, try to load from IndexedDB
-        const items = await db.getAllItems();
-        updateTable(items);
-    }
-}
-
-// Update item
-async function updateInventoryItem(item) {
-    try {
-        await db.updateItem(item);
-        // Update UI immediately
-        await loadInventoryData();
-    } catch (error) {
-        console.error('Error updating item:', error);
-    }
-}
-
-// Add new item
-async function addInventoryItem(item) {
-    try {
-        await db.addItem(item);
-        // Update UI immediately
-        await loadInventoryData();
-    } catch (error) {
-        console.error('Error adding item:', error);
-    }
-}
-
-// Delete item
-async function deleteInventoryItem(qrCode) {
-    try {
-        await db.deleteItem(qrCode);
-        // Update UI immediately
-        await loadInventoryData();
-    } catch (error) {
-        console.error('Error deleting item:', error);
-    }
-}
-
-// Add offline status indicator
-function updateOnlineStatus() {
-    const statusElement = document.getElementById('onlineStatus') || createStatusElement();
-    if (navigator.onLine) {
-        statusElement.textContent = '🟢 Online';
-        statusElement.classList.remove('offline');
-        statusElement.classList.add('online');
-    } else {
-        statusElement.textContent = '🔴 Offline';
-        statusElement.classList.remove('online');
-        statusElement.classList.add('offline');
-    }
-}
-
-function createStatusElement() {
-    const statusElement = document.createElement('div');
-    statusElement.id = 'onlineStatus';
-    statusElement.style.position = 'fixed';
-    statusElement.style.top = '10px';
-    statusElement.style.right = '10px';
-    statusElement.style.padding = '5px 10px';
-    statusElement.style.borderRadius = '5px';
-    statusElement.style.fontSize = '14px';
-    document.body.appendChild(statusElement);
-    return statusElement;
-}
-
-// Listen for online/offline events
-window.addEventListener('online', () => {
-    updateOnlineStatus();
-    // Trigger sync when we come back online
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(registration => {
-            registration.sync.register('sync-data');
-        });
-    }
-});
-
-window.addEventListener('offline', updateOnlineStatus);
-
-// Initial online status check
-updateOnlineStatus();
-
-// Export functions for use in other modules
-export {
-    loadInventoryData,
-    updateInventoryItem,
-    addInventoryItem,
-    deleteInventoryItem
-};
