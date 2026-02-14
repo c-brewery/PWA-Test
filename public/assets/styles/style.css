@@ -368,6 +368,11 @@ button:hover {
   position: absolute;
   right: 0;
   top: 0;
+  z-index: 1001;
+  padding: 14px 16px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Add a grey background color on mouse-over */

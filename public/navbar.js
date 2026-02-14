@@ -1,65 +1,105 @@
-// Toggle hamburger menu - Global function for inline onclick handler
+// Toggle hamburger menu
 function toggleNavbar() {
   const myLinks = document.getElementById("myLinks");
+  console.log("toggleNavbar called, current state:", myLinks?.classList.contains("show"));
+  
   if (myLinks) {
     myLinks.classList.toggle("show");
+    console.log("After toggle, show class present:", myLinks.classList.contains("show"));
   }
 }
 
-// Handle both click and touchend events for better mobile support
+// Initialize navbar functionality
 function initializeNavbar() {
+  console.log("=== NAVBAR INITIALIZATION START ===");
+  
   const toggleButton = document.getElementById("toggleNavbarButton");
   const myLinks = document.getElementById("myLinks");
   
-  if (toggleButton) {
-    // Remove inline onclick and add proper event listeners
-    toggleButton.removeAttribute("onclick");
-    
-    // Handle both click and touch events
-    toggleButton.addEventListener("click", function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleNavbar();
-    });
-    
-    // Add touchend as fallback for Android
-    toggleButton.addEventListener("touchend", function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleNavbar();
-    });
+  console.log("DOM Elements found:", {
+    toggleButton: !!toggleButton,
+    myLinks: !!myLinks,
+    toggleButtonElement: toggleButton,
+    myLinksElement: myLinks
+  });
+  
+  if (!toggleButton) {
+    console.error("❌ ERROR: toggleButton with id 'toggleNavbarButton' not found!");
+    return;
   }
   
-  // Close menu when clicking on a link
-  if (myLinks) {
-    const links = myLinks.querySelectorAll("a");
-    links.forEach(link => {
-      link.addEventListener("click", function(e) {
-        e.stopPropagation();
-        myLinks.classList.remove("show");
-      });
-      
-      // Add touchend as fallback
-      link.addEventListener("touchend", function(e) {
-        e.stopPropagation();
-        myLinks.classList.remove("show");
-      });
-    });
+  if (!myLinks) {
+    console.error("❌ ERROR: myLinks with id 'myLinks' not found!");
+    return;
   }
+  
+  // Add click listener to hamburger button
+  toggleButton.addEventListener("click", function(e) {
+    console.log("✅ HAMBURGER CLICK - Preventing default and calling toggleNavbar");
+    e.preventDefault();
+    toggleNavbar();
+  });
+  
+  // Add touch listener for Android
+  toggleButton.addEventListener("touchend", function(e) {
+    console.log("✅ HAMBURGER TOUCH - Preventing default and calling toggleNavbar");
+    e.preventDefault();
+    toggleNavbar();
+  });
+  
+  console.log("✅ Hamburger button listeners attached");
+  
+  // Close menu when clicking on a menu link
+  const navLinks = myLinks.querySelectorAll("a");
+  console.log("Found " + navLinks.length + " links in navbar menu");
+  
+  navLinks.forEach((link, index) => {
+    link.addEventListener("click", function(e) {
+      console.log("✅ Nav link clicked (" + index + "), closing menu");
+      myLinks.classList.remove("show");
+    });
+    
+    link.addEventListener("touchend", function(e) {
+      console.log("✅ Nav link touched (" + index + "), closing menu");
+      myLinks.classList.remove("show");
+    });
+  });
   
   // Close menu when clicking outside
   document.addEventListener("click", function(e) {
-    if (myLinks && e.target !== toggleButton && !myLinks.contains(e.target)) {
-      myLinks.classList.remove("show");
+    if (myLinks.classList.contains("show")) {
+      // Check if click is outside the navbar
+      if (!myLinks.contains(e.target) && e.target !== toggleButton) {
+        console.log("✅ Click outside menu, closing");
+        myLinks.classList.remove("show");
+      }
     }
   });
   
-  document.addEventListener("touchend", function(e) {
-    if (myLinks && e.target !== toggleButton && !myLinks.contains(e.target)) {
-      myLinks.classList.remove("show");
-    }
-  });
+  console.log("=== NAVBAR INITIALIZATION COMPLETE ===");
 }
 
 // Initialize when DOM is ready
-document.addEventListener("DOMContentLoaded", initializeNavbar);
+console.log("navbar.js loaded, document.readyState:", document.readyState);
+
+if (document.readyState === "loading") {
+  console.log("DOM still loading, registering DOMContentLoaded listener");
+  document.addEventListener("DOMContentLoaded", function() {
+    console.log("DOMContentLoaded fired");
+    initializeNavbar();
+  });
+} else {
+  console.log("DOM already loaded, calling initializeNavbar immediately");
+  initializeNavbar();
+}
+
+// Fallback initialization after a short delay
+console.log("Setting 100ms timeout as fallback initialization");
+setTimeout(function() {
+  console.log("Timeout fired, checking if navbar needs initialization");
+  const toggleButton = document.getElementById("toggleNavbarButton");
+  if (toggleButton && !toggleButton._navbarInitialized) {
+    console.log("Running fallback initialization");
+    initializeNavbar();
+  }
+}, 100);
