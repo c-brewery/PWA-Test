@@ -15,38 +15,39 @@ function initializeNavbar() {
   
   const toggleButton = document.getElementById("toggleNavbarButton");
   const myLinks = document.getElementById("myLinks");
-
+  
   console.log("DOM Elements found:", {
     toggleButton: !!toggleButton,
     myLinks: !!myLinks,
     toggleButtonElement: toggleButton,
     myLinksElement: myLinks
   });
-
-  if (!myLinks) {
-    console.warn("⚠️ myLinks with id 'myLinks' not found! Navbar initialization will skip link handling.");
+  
+  if (!toggleButton) {
+    console.error("❌ ERROR: toggleButton with id 'toggleNavbarButton' not found!");
     return;
   }
-
-  if (!toggleButton) {
-    console.warn("⚠️ toggleButton with id 'toggleNavbarButton' not found; skipping hamburger listeners.");
-  } else {
-    // Add click listener to hamburger button
-    toggleButton.addEventListener("click", function(e) {
-      console.log("✅ HAMBURGER CLICK - Preventing default and calling toggleNavbar");
-      e.preventDefault();
-      toggleNavbar();
-    });
-
-    // Add touch listener for Android
-    toggleButton.addEventListener("touchend", function(e) {
-      console.log("✅ HAMBURGER TOUCH - Preventing default and calling toggleNavbar");
-      e.preventDefault();
-      toggleNavbar();
-    });
-
-    console.log("✅ Hamburger button listeners attached");
+  
+  if (!myLinks) {
+    console.error("❌ ERROR: myLinks with id 'myLinks' not found!");
+    return;
   }
+  
+  // Add click listener to hamburger button
+  toggleButton.addEventListener("click", function(e) {
+    console.log("✅ HAMBURGER CLICK - Preventing default and calling toggleNavbar");
+    e.preventDefault();
+    toggleNavbar();
+  });
+  
+  // Add touch listener for Android
+  toggleButton.addEventListener("touchend", function(e) {
+    console.log("✅ HAMBURGER TOUCH - Preventing default and calling toggleNavbar");
+    e.preventDefault();
+    toggleNavbar();
+  });
+  
+  console.log("✅ Hamburger button listeners attached");
   
   // Close menu when clicking on a menu link
   const navLinks = myLinks.querySelectorAll("a");
