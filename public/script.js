@@ -2,8 +2,115 @@ import { QRScanner } from "./qrScanner.js";
 import { FileHandler } from "./fileHandler.js";
 import { ModalHandler } from "./modalHandler.js";
 
+// Notification/Toast System
+class NotificationManager {
+  static show(message, type = 'info', duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 20px;
+      background-color: ${type === 'error' ? '#f8d7da' : type === 'success' ? '#d4edda' : '#d1ecf1'};
+      color: ${type === 'error' ? '#721c24' : type === 'success' ? '#155724' : '#0c5460'};
+      border: 1px solid ${type === 'error' ? '#f5c6cb' : type === 'success' ? '#c3e6cb' : '#bee5eb'};
+      border-radius: 4px;
+      z-index: 9999;
+      font-size: 14px;
+      max-width: 400px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      animation: slideIn 0.3s ease-in-out;
+    `;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.animation = 'slideOut 0.3s ease-in-out';
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  }
+
+  static showLoading(message = 'Loading...') {
+    const loader = document.createElement('div');
+    loader.id = 'appLoader';
+    loader.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9998;
+    `;
+    loader.innerHTML = `
+      <div style="background: white; padding: 30px; border-radius: 8px; text-align: center;">
+        <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
+        <p style="margin: 0; color: #333;">${message}</p>
+      </div>
+    `;
+    document.body.appendChild(loader);
+    return loader;
+  }
+
+  static hideLoading() {
+    const loader = document.getElementById('appLoader');
+    if (loader) loader.remove();
+  }
+}
+
+// Add animation styles if not already present
+if (!document.getElementById('notificationStyles')) {
+  const style = document.createElement('style');
+  style.id = 'notificationStyles';
+  style.textContent = `
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// Constants
+const COLUMN_DISPLAY_NAMES = {
+  qr_code: "QR Code",
+  name: "Name",
+  location: "Standort",
+  description: "Beschreibung",
+  category: "Kategorie",
+  current_stock: "Aktueller Bestand",
+  expected_stock: "Erwarteter Bestand",
+  stock_last_updated: "Letzte Inventur"
+};
+
+const SEARCHABLE_COLUMNS = ["qr_code", "name", "location"];
+
 // Default settings
-const defaultSettings = {
+const DEFAULT_SETTINGS = {
   columns: {
     qr_code: true, // Always visible
     name: true,
@@ -18,397 +125,701 @@ const defaultSettings = {
   show_timestamps: true
 };
 
-// Load settings from localStorage or use defaults
-let appSettings = JSON.parse(localStorage.getItem('appSettings')) || defaultSettings;
+// DOM element selectors
+const SELECTORS = {
+  uploadButton: "#uploadButton",
+  downloadJsonButton: "#downloadJsonButton",
+  jsonFileInput: "#jsonFileInput",
+  qrScannerModal: "#qrScannerModal",
+  openQrScanner: "#openQrScanner",
+  closeQrScanner: "#closeQrScanner",
+  reopenScannerButton: "#reopenScannerButton",
+  settingsButton: "#settingsButton",
+  settingsModal: "#settingsModal",
+  saveSettings: "#saveSettings",
+  searchInput: "#qrCodeResult",
+  clearSearch: "#clearSearch",
+  tableBody: "#tableBody",
+  tableHead: ".sortable-table thead tr",
+  jsonOutput: "#jsonOutput",
+  reader: "#reader",
+  myDropdown: "#myDropdown",
+  noResultsMessage: "#noResultsMessage"
+};
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (!Html5Qrcode) {
-    console.error("Html5Qrcode is not loaded");
-    return;
+// Application state
+class AppState {
+  constructor() {
+    this.settings = this.loadSettings();
+    this.fileHandler = new FileHandler();
+    this.qrScanner = new QRScanner();
+    this.modalHandler = null;
+    this.currentSort = { column: "", ascending: true };
   }
 
-  const fileHandler = new FileHandler();
-  const qrScanner = new QRScanner();
-  
-  // Load cached data immediately and display it
-  const cachedData = fileHandler.loadCachedData();
-  if (cachedData && cachedData.data) {
-    displayJsonData(cachedData.data);
+  loadSettings() {
+    return JSON.parse(localStorage.getItem('appSettings')) || DEFAULT_SETTINGS;
   }
 
-  // Initialize UI elements
-  const uploadButton = document.getElementById("uploadButton");
-  const downloadJsonButton = document.getElementById("downloadJsonButton");
-  const jsonFileInput = document.getElementById("jsonFileInput");
-  const qrScannerModal = document.getElementById("qrScannerModal");
-  const openQrScannerBtn = document.getElementById("openQrScanner");
-  const closeQrScannerBtn = document.getElementById("closeQrScanner");
-  const reopenScannerButton = document.getElementById("reopenScannerButton");
-  const settingsButton = document.getElementById("settingsButton");
-  const settingsModal = document.getElementById("settingsModal");
-  const saveSettingsButton = document.getElementById("saveSettings");
-  const searchInput = document.getElementById("qrCodeResult");
-  const clearSearchButton = document.getElementById("clearSearch");
+  saveSettings() {
+    localStorage.setItem('appSettings', JSON.stringify(this.settings));
+  }
+}
 
-  // Initialize settings
-  initializeSettings();
+// Settings management
+class SettingsManager {
+  constructor(appState) {
+    this.appState = appState;
+  }
 
-  // Search functionality
-  searchInput.addEventListener("input", (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    filterTable(searchTerm);
-    clearSearchButton.style.display = searchTerm ? "block" : "none";
-  });
+  initialize() {
+    this.updateCheckboxes();
+  }
 
-  clearSearchButton.addEventListener("click", () => {
-    searchInput.value = "";
-    filterTable("");
-    clearSearchButton.style.display = "none";
-  });
-
-  // Settings event listeners
-  settingsButton.addEventListener("click", () => {
-    settingsModal.style.display = "block";
-  });
-
-  settingsModal.querySelector(".close").addEventListener("click", () => {
-    settingsModal.style.display = "none";
-  });
-
-  saveSettingsButton.addEventListener("click", () => {
-    saveSettings();
-    settingsModal.style.display = "none";
-    // Refresh table with new settings
-    if (cachedData && cachedData.data) {
-      displayJsonData(cachedData.data);
-    }
-  });
-
-  // Initialize modal handler
-  const modalHandler = new ModalHandler(
-    'modal',
-    'editForm',
-    '.close',
-    'saveChangesButton',
-    (formData) => {
-      const item = fileHandler.findItemByQRCode(formData.get('qr_code'));
-      if (item) {
-        for (const [key, value] of formData.entries()) {
-          item[key] = key.includes('date') || key.includes('timestamp')
-            ? new Date(value).toISOString()
-            : typeof item[key] === 'number'
-            ? parseInt(value)
-            : value;
-        }
-        fileHandler.saveToCache();
-        displayJsonData(fileHandler.getData());
+  updateCheckboxes() {
+    // Update column checkboxes
+    for (const [key, value] of Object.entries(this.appState.settings.columns)) {
+      const checkbox = document.getElementById(`col_${key}`);
+      if (checkbox) {
+        checkbox.checked = value;
       }
     }
-  );
 
-  // Event Listeners
-  uploadButton.addEventListener("click", () => jsonFileInput.click());
-
-  jsonFileInput.addEventListener("change", async (event) => {
-    try {
-      const data = await fileHandler.handleFileUpload(event.target.files[0]);
-      displayJsonData(data);
-      document.getElementById("jsonOutput").style.display = "none";
-    } catch (error) {
-      document.getElementById("jsonOutput").textContent = error.message;
-    }
-  });
-
-  downloadJsonButton.addEventListener("click", () => {
-    fileHandler.downloadCurrentData('edited.json');
-  });
-
-  const handleQrCodeScan = (qrCodeMessage) => {
-    searchInput.value = qrCodeMessage;
-    filterTable(qrCodeMessage);
-    clearSearchButton.style.display = "block";
+    // Update other settings
+    const highlightCheckbox = document.getElementById('setting_highlight_discrepancies');
+    const timestampsCheckbox = document.getElementById('setting_show_timestamps');
     
-    qrScanner.stop().then(() => {
-      qrScannerModal.style.display = "none";
-      const scannedData = fileHandler.findItemByQRCode(qrCodeMessage);
-      if (scannedData) {
-        displayJsonData(fileHandler.getData());
-        // Ensure the row is visible after redisplaying the data
-        filterTable(qrCodeMessage);
-        modalHandler.show(scannedData);
+    if (highlightCheckbox) highlightCheckbox.checked = this.appState.settings.highlight_discrepancies;
+    if (timestampsCheckbox) timestampsCheckbox.checked = this.appState.settings.show_timestamps;
+  }
+
+  save() {
+    // Save column settings
+    for (const [key] of Object.entries(this.appState.settings.columns)) {
+      const checkbox = document.getElementById(`col_${key}`);
+      if (checkbox && !checkbox.disabled) {
+        this.appState.settings.columns[key] = checkbox.checked;
+      }
+    }
+
+    // Save other settings
+    const highlightCheckbox = document.getElementById('setting_highlight_discrepancies');
+    const timestampsCheckbox = document.getElementById('setting_show_timestamps');
+    
+    if (highlightCheckbox) this.appState.settings.highlight_discrepancies = highlightCheckbox.checked;
+    if (timestampsCheckbox) this.appState.settings.show_timestamps = timestampsCheckbox.checked;
+
+    this.appState.saveSettings();
+  }
+}
+
+// Table management
+class TableManager {
+  constructor(appState) {
+    this.appState = appState;
+    this.noResultsMessage = null;
+    this.currentData = [];
+    this.currentHeadersVisible = {};
+  }
+
+  displayData(jsonData, highlightQrCode = null) {
+    const tableBody = document.querySelector(SELECTORS.tableBody);
+    const tableHead = document.querySelector(SELECTORS.tableHead);
+    
+    if (!tableBody || !tableHead) return;
+
+    const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
+    
+    // Check if we need to rebuild headers (column visibility changed)
+    const headersChanged = this.checkHeadersChanged();
+    if (headersChanged) {
+      tableHead.innerHTML = "";
+      this.createTableHeaders(tableHead);
+      tableBody.innerHTML = "";
+      this.currentData = [];
+    }
+    
+    // Use incremental update for table rows
+    this.updateTableRows(tableBody, dataArray, highlightQrCode);
+    this.currentData = dataArray;
+    this.setupSorting();
+  }
+
+  checkHeadersChanged() {
+    const newHeadersVisible = {...this.appState.settings.columns};
+    const changed = JSON.stringify(newHeadersVisible) !== JSON.stringify(this.currentHeadersVisible);
+    if (changed) {
+      this.currentHeadersVisible = newHeadersVisible;
+    }
+    return changed;
+  }
+
+  updateTableRows(tableBody, newData, highlightQrCode) {
+    // Get current rows
+    const currentRows = Array.from(tableBody.querySelectorAll('tr'));
+    
+    // If data length changed significantly, just rebuild
+    if (Math.abs(currentRows.length - newData.length) > 5 || this.currentData.length === 0) {
+      tableBody.innerHTML = "";
+      newData.forEach((item) => {
+        const row = this.createTableRow(item, highlightQrCode);
+        tableBody.appendChild(row);
+      });
+      return;
+    }
+    
+    // Incremental update: update existing rows and add/remove as needed
+    newData.forEach((item, index) => {
+      if (index < currentRows.length) {
+        // Update existing row
+        const row = currentRows[index];
+        const rowHtml = this.buildRowHtml(item);
+        row.innerHTML = rowHtml;
+        row.style.cursor = "pointer";
+        
+        // Update classes
+        row.classList.remove('scanned-row', 'stock-discrepancy');
+        if (highlightQrCode && item.qr_code === highlightQrCode) {
+          row.classList.add('scanned-row');
+        }
+        if (this.shouldHighlightDiscrepancy(item)) {
+          row.classList.add('stock-discrepancy');
+        }
+        
+        // Re-attach click handler
+        row.onclick = null;
+        row.addEventListener("click", () => this.handleRowClick(item, newData));
       } else {
-        alert("QR code not found in inventory");
-        // Clear the search if QR code wasn't found
-        searchInput.value = "";
-        filterTable("");
-        clearSearchButton.style.display = "none";
+        // Add new row
+        const row = this.createTableRow(item, highlightQrCode);
+        tableBody.appendChild(row);
       }
     });
-  };
-
-  openQrScannerBtn.addEventListener("click", async () => {
-    qrScannerModal.style.display = "block";
-    try {
-      await qrScanner.initialize(handleQrCodeScan);
-    } catch (error) {
-      alert(error.message);
-      qrScannerModal.style.display = "none";
-    }
-  });
-
-  closeQrScannerBtn.addEventListener("click", () => {
-    qrScanner.stop().then(() => {
-      qrScannerModal.style.display = "none";
-    });
-  });
-
-  reopenScannerButton.addEventListener("click", async () => {
-    document.getElementById("reader").style.display = "block";
-    qrScannerModal.style.display = "block";
-    try {
-      await qrScanner.initialize(handleQrCodeScan);
-    } catch (error) {
-      alert(error.message);
-      qrScannerModal.style.display = "none";
-    }
-  });
-});
-
-function initializeSettings() {
-  // Set checkboxes based on current settings
-  for (const [key, value] of Object.entries(appSettings.columns)) {
-    const checkbox = document.getElementById(`col_${key}`);
-    if (checkbox) {
-      checkbox.checked = value;
+    
+    // Remove extra rows if data is smaller
+    while (currentRows.length > newData.length) {
+      currentRows[currentRows.length - 1].remove();
+      currentRows.pop();
     }
   }
 
-  document.getElementById('setting_highlight_discrepancies').checked = appSettings.highlight_discrepancies;
-  document.getElementById('setting_show_timestamps').checked = appSettings.show_timestamps;
-}
-
-function saveSettings() {
-  // Save column settings
-  for (const [key] of Object.entries(appSettings.columns)) {
-    const checkbox = document.getElementById(`col_${key}`);
-    if (checkbox && !checkbox.disabled) {
-      appSettings.columns[key] = checkbox.checked;
+  createTableHeaders(tableHead) {
+    for (const [key, visible] of Object.entries(this.appState.settings.columns)) {
+      if (visible) {
+        const th = document.createElement("th");
+        th.dataset.sort = key;
+        const displayName = COLUMN_DISPLAY_NAMES[key] || key;
+        th.innerHTML = `${displayName} <span class="sort-icon">↕</span>`;
+        tableHead.appendChild(th);
+      }
     }
   }
 
-  // Save other settings
-  appSettings.highlight_discrepancies = document.getElementById('setting_highlight_discrepancies').checked;
-  appSettings.show_timestamps = document.getElementById('setting_show_timestamps').checked;
-
-  // Save to localStorage
-  localStorage.setItem('appSettings', JSON.stringify(appSettings));
-}
-
-function displayJsonData(jsonData, highlightQrCode = null) {
-  const tableBody = document.getElementById("tableBody");
-  const tableHead = document.querySelector(".sortable-table thead tr");
-  tableBody.innerHTML = "";
-  tableHead.innerHTML = "";
-
-  const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
-
-  // Update table headers based on visible columns
-  for (const [key, visible] of Object.entries(appSettings.columns)) {
-    if (visible) {
-      const th = document.createElement("th");
-      th.dataset.sort = key;
-      const displayName = {
-        qr_code: "QR Code",
-        name: "Name",
-        location: "Standort",
-        description: "Beschreibung",
-        category: "Kategorie",
-        current_stock: "Aktueller Bestand",
-        expected_stock: "Erwarteter Bestand",
-        stock_last_updated: "Letzte Inventur"
-      }[key];
-      th.innerHTML = `${displayName} <span class="sort-icon">↕</span>`;
-      tableHead.appendChild(th);
-    }
-  }
-
-  dataArray.forEach((item) => {
+  createTableRow(item, highlightQrCode) {
     const row = document.createElement("tr");
+    
+    // Add highlighting classes
     if (highlightQrCode && item.qr_code === highlightQrCode) {
       row.classList.add("scanned-row");
     }
 
-    // Add stock discrepancy highlighting
-    if (appSettings.highlight_discrepancies && 
-        item.current_stock !== undefined && 
-        item.expected_stock !== undefined && 
-        item.current_stock !== item.expected_stock) {
+    if (this.shouldHighlightDiscrepancy(item)) {
       row.classList.add("stock-discrepancy");
     }
 
-    // Check if stock_last_updated is valid
-    const stockLastUpdated = new Date(item.stock_last_updated);
-    const isValidStockUpdate = !isNaN(stockLastUpdated.getTime());
-
-    // Build row content based on visible columns
-    let rowHtml = '';
-    for (const [key, visible] of Object.entries(appSettings.columns)) {
-      if (visible) {
-        if (key === 'qr_code') {
-          rowHtml += `
-            <td>
-              ${isValidStockUpdate ? '<i class="fa fa-check-circle" style="color: #4CAF50; margin-right: 8px;"></i>' : ''}
-              ${item[key] || ""}
-            </td>`;
-        } else if (key === 'stock_last_updated' && appSettings.show_timestamps) {
-          const date = new Date(item[key]);
-          rowHtml += `<td>${isValidStockUpdate ? date.toLocaleString() : ''}</td>`;
-        } else {
-          rowHtml += `<td>${item[key] || ""}</td>`;
-        }
-      }
-    }
+    // Create row content
+    const rowHtml = this.buildRowHtml(item);
     row.innerHTML = rowHtml;
 
+    // Add click handler
     row.style.cursor = "pointer";
-    row.addEventListener("click", () => {
-      const modalHandler = new ModalHandler(
-        'modal',
-        'editForm',
-        '.close',
-        'saveChangesButton',
-        (formData) => {
-          const updatedData = { ...item };
-          for (const [key, value] of formData.entries()) {
-            updatedData[key] = key.includes('date') || key.includes('timestamp')
-              ? new Date(value).toISOString()
-              : typeof item[key] === 'number'
-              ? parseInt(value)
-              : value;
-          }
-          Object.assign(item, updatedData);
-          displayJsonData(dataArray);
-        }
-      );
-      modalHandler.show(item);
-    });
-    tableBody.appendChild(row);
-  });
+    row.addEventListener("click", () => this.handleRowClick(item, this.currentData));
 
-  // Reinitialize table sorting
-  setupTableSorting();
-}
+    return row;
+  }
 
-function toggleDropdown() {
-  document.getElementById("myDropdown").classList.toggle("show");
-}
+  shouldHighlightDiscrepancy(item) {
+    return this.appState.settings.highlight_discrepancies && 
+           item.current_stock !== undefined && 
+           item.expected_stock !== undefined && 
+           item.current_stock !== item.expected_stock;
+  }
 
-// Close the dropdown if the user clicks outside of it
-window.onclick = function (event) {
-  if (!event.target.matches(".dropbtn")) {
-    const dropdowns = document.getElementsByClassName("dropdown-content");
-    for (let i = 0; i < dropdowns.length; i++) {
-      const openDropdown = dropdowns[i];
-      if (openDropdown.classList.contains("show")) {
-        openDropdown.classList.remove("show");
+  buildRowHtml(item) {
+    const stockLastUpdated = new Date(item.stock_last_updated);
+    const isValidStockUpdate = !isNaN(stockLastUpdated.getTime());
+    let rowHtml = '';
+
+    for (const [key, visible] of Object.entries(this.appState.settings.columns)) {
+      if (visible) {
+        rowHtml += this.createCellHtml(key, item, isValidStockUpdate);
       }
     }
+
+    return rowHtml;
   }
-};
 
-// Sortierfunktion für die Tabelle
-function setupTableSorting() {
-  const table = document.querySelector(".sortable-table");
-  const headers = table.querySelectorAll("th");
-  let currentSort = { column: "", ascending: true };
+  createCellHtml(key, item, isValidStockUpdate) {
+    if (key === 'qr_code') {
+      const checkIcon = isValidStockUpdate ? '<i class="fa fa-check-circle" style="color: #4CAF50; margin-right: 8px;"></i>' : '';
+      return `<td>${checkIcon}${item[key] || ""}</td>`;
+    } else if (key === 'stock_last_updated' && this.appState.settings.show_timestamps) {
+      const date = new Date(item[key]);
+      return `<td>${isValidStockUpdate ? date.toLocaleString() : ''}</td>`;
+    } else {
+      return `<td>${item[key] || ""}</td>`;
+    }
+  }
 
-  headers.forEach((header) => {
-    header.addEventListener("click", () => {
-      const column = header.dataset.sort;
-      const ascending =
-        currentSort.column === column ? !currentSort.ascending : true;
+  handleRowClick(item, dataArray) {
+    if (!this.appState.modalHandler) return;
+    
+    this.appState.modalHandler.show(item);
+  }
 
-      // Sortiere die Tabellenzeilen
-      const rows = Array.from(table.querySelectorAll("tbody tr"));
-      rows.sort((a, b) => {
-        const aValue =
-          a.children[Array.from(headers).indexOf(header)].textContent;
-        const bValue =
-          b.children[Array.from(headers).indexOf(header)].textContent;
-        return ascending
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      });
+  setupSorting() {
+    const table = document.querySelector(".sortable-table");
+    const headers = table.querySelectorAll("th");
 
-      // Aktualisiere die Sortierrichtung
-      currentSort = { column, ascending };
-
-      // Aktualisiere die Tabellenansicht
-      const tbody = table.querySelector("tbody");
-      rows.forEach((row) => tbody.appendChild(row));
-
-      // Aktualisiere die Sortierpfeile
-      headers.forEach((h) => {
-        const arrow = h.querySelector(".sort-icon");
-        if (h === header) {
-          arrow.textContent = ascending ? "↓" : "↑";
-        } else {
-          arrow.textContent = "↕";
-        }
-      });
+    headers.forEach((header) => {
+      header.addEventListener("click", () => this.handleSort(header, headers, table));
     });
-  });
-}
+  }
 
-// Initialisiere die Tabellensortierung nach dem Laden der Seite
-document.addEventListener("DOMContentLoaded", setupTableSorting);
+  handleSort(clickedHeader, headers, table) {
+    const column = clickedHeader.dataset.sort;
+    const ascending = this.appState.currentSort.column === column ? !this.appState.currentSort.ascending : true;
 
-function filterTable(searchTerm) {
-  const rows = document.querySelectorAll("#tableBody tr");
-  const visibleColumns = Object.entries(appSettings.columns)
-    .filter(([_, visible]) => visible)
-    .map(([key]) => key);
+    const rows = Array.from(table.querySelectorAll("tbody tr"));
+    rows.sort((a, b) => {
+      const aValue = a.children[Array.from(headers).indexOf(clickedHeader)].textContent;
+      const bValue = b.children[Array.from(headers).indexOf(clickedHeader)].textContent;
+      return ascending ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+    });
 
-  let hasVisibleRows = false;
+    this.appState.currentSort = { column, ascending };
 
-  rows.forEach(row => {
-    const cells = Array.from(row.getElementsByTagName("td"));
-    const textContent = cells
+    const tbody = table.querySelector("tbody");
+    rows.forEach((row) => tbody.appendChild(row));
+
+    this.updateSortArrows(headers, clickedHeader, ascending);
+  }
+
+  updateSortArrows(headers, clickedHeader, ascending) {
+    headers.forEach((header) => {
+      const arrow = header.querySelector(".sort-icon");
+      if (header === clickedHeader) {
+        arrow.textContent = ascending ? "↓" : "↑";
+      } else {
+        arrow.textContent = "↕";
+      }
+    });
+  }
+
+  filter(searchTerm) {
+    const rows = document.querySelectorAll(`${SELECTORS.tableBody} tr`);
+    const visibleColumns = Object.entries(this.appState.settings.columns)
+      .filter(([_, visible]) => visible)
+      .map(([key]) => key);
+
+    let hasVisibleRows = false;
+
+    rows.forEach(row => {
+      const cells = Array.from(row.getElementsByTagName("td"));
+      const textContent = this.getSearchableText(cells, visibleColumns);
+
+      if (textContent.includes(searchTerm.toLowerCase())) {
+        row.classList.remove("row-hidden");
+        hasVisibleRows = true;
+      } else {
+        row.classList.add("row-hidden");
+      }
+    });
+
+    this.toggleNoResultsMessage(!hasVisibleRows && searchTerm);
+  }
+
+  getSearchableText(cells, visibleColumns) {
+    return cells
       .map((cell, index) => ({
         text: cell.textContent.trim().toLowerCase(),
         column: visibleColumns[index]
       }))
-      .filter(({ column }) => ["qr_code", "name", "location"].includes(column))
+      .filter(({ column }) => SEARCHABLE_COLUMNS.includes(column))
       .map(({ text }) => text)
       .join(" ");
+  }
 
-    if (textContent.includes(searchTerm.toLowerCase())) {
-      row.classList.remove("row-hidden");
-      hasVisibleRows = true;
-    } else {
-      row.classList.add("row-hidden");
+  toggleNoResultsMessage(show) {
+    if (!this.noResultsMessage) {
+      this.noResultsMessage = this.createNoResultsMessage();
     }
-  });
+    this.noResultsMessage.style.display = show ? "block" : "none";
+  }
 
-  // If no rows are visible and we have a search term, show a message
-  const noResultsMessage = document.getElementById("noResultsMessage") || createNoResultsMessage();
-  if (!hasVisibleRows && searchTerm) {
-    noResultsMessage.style.display = "block";
-  } else {
-    noResultsMessage.style.display = "none";
+  createNoResultsMessage() {
+    const message = document.createElement("div");
+    message.id = "noResultsMessage";
+    message.style.textAlign = "center";
+    message.style.padding = "20px";
+    message.style.color = "#666";
+    message.textContent = "Keine Ergebnisse gefunden";
+    
+    const table = document.querySelector(".sortable-table");
+    if (table && table.parentNode) {
+      table.parentNode.insertBefore(message, table.nextSibling);
+    }
+    
+    return message;
   }
 }
 
-function createNoResultsMessage() {
-  const message = document.createElement("div");
-  message.id = "noResultsMessage";
-  message.style.textAlign = "center";
-  message.style.padding = "20px";
-  message.style.color = "#666";
-  message.textContent = "Keine Ergebnisse gefunden";
-  
-  const table = document.querySelector(".sortable-table");
-  table.parentNode.insertBefore(message, table.nextSibling);
-  
-  return message;
+// Search functionality
+class SearchManager {
+  constructor(appState, tableManager) {
+    this.appState = appState;
+    this.tableManager = tableManager;
+    this.searchInput = document.querySelector(SELECTORS.searchInput);
+    this.clearButton = document.querySelector(SELECTORS.clearSearch);
+  }
+
+  initialize() {
+    if (!this.searchInput || !this.clearButton) return;
+
+    this.searchInput.addEventListener("input", (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      this.tableManager.filter(searchTerm);
+      this.clearButton.style.display = searchTerm ? "block" : "none";
+    });
+
+    this.clearButton.addEventListener("click", () => {
+      this.searchInput.value = "";
+      this.tableManager.filter("");
+      this.clearButton.style.display = "none";
+    });
+  }
+
+  setSearchTerm(term) {
+    if (this.searchInput) {
+      this.searchInput.value = term;
+      this.tableManager.filter(term);
+      if (this.clearButton) {
+        this.clearButton.style.display = term ? "block" : "none";
+      }
+    }
+  }
+
+  clearSearch() {
+    this.setSearchTerm("");
+  }
 }
+
+// QR Scanner management
+class QRScannerManager {
+  constructor(appState, tableManager, searchManager) {
+    this.appState = appState;
+    this.tableManager = tableManager;
+    this.searchManager = searchManager;
+    this.qrScannerModal = document.querySelector(SELECTORS.qrScannerModal);
+  }
+
+  initialize() {
+    const openBtn = document.querySelector(SELECTORS.openQrScanner);
+    const closeBtn = document.querySelector(SELECTORS.closeQrScanner);
+    const reopenBtn = document.querySelector(SELECTORS.reopenScannerButton);
+
+    if (openBtn) openBtn.addEventListener("click", () => this.openScanner());
+    if (closeBtn) closeBtn.addEventListener("click", () => this.closeScanner());
+    if (reopenBtn) reopenBtn.addEventListener("click", () => this.reopenScanner());
+  }
+
+  async openScanner() {
+    if (this.qrScannerModal) this.qrScannerModal.style.display = "block";
+    try {
+      await this.appState.qrScanner.initialize((qrCode) => this.handleQrCodeScan(qrCode));
+    } catch (error) {
+      alert(error.message);
+      if (this.qrScannerModal) this.qrScannerModal.style.display = "none";
+    }
+  }
+
+  async closeScanner() {
+    await this.appState.qrScanner.stop();
+    if (this.qrScannerModal) this.qrScannerModal.style.display = "none";
+  }
+
+  async reopenScanner() {
+    const reader = document.querySelector(SELECTORS.reader);
+    if (reader) reader.style.display = "block";
+    if (this.qrScannerModal) this.qrScannerModal.style.display = "block";
+    try {
+      NotificationManager.showLoading('Initializing QR Scanner...');
+      await this.appState.qrScanner.initialize((qrCode) => this.handleQrCodeScan(qrCode));
+      NotificationManager.hideLoading();
+      NotificationManager.show('QR Scanner ready', 'success');
+    } catch (error) {
+      NotificationManager.hideLoading();
+      NotificationManager.show('Error: ' + error.message, 'error');
+      if (this.qrScannerModal) this.qrScannerModal.style.display = "none";
+    }
+  }
+
+  handleQrCodeScan(qrCodeMessage) {
+    this.searchManager.setSearchTerm(qrCodeMessage);
+    
+    this.appState.qrScanner.stop().then(() => {
+      if (this.qrScannerModal) this.qrScannerModal.style.display = "none";
+      
+      const scannedData = this.appState.fileHandler.findItemByQRCode(qrCodeMessage);
+      if (scannedData) {
+        this.tableManager.displayData(this.appState.fileHandler.getData());
+        this.searchManager.setSearchTerm(qrCodeMessage);
+        if (this.appState.modalHandler) {
+          NotificationManager.show('Item found and opened for editing', 'success');
+          this.appState.modalHandler.show(scannedData);
+        }
+      } else {
+        NotificationManager.show('QR code not found in inventory', 'error');
+        this.searchManager.clearSearch();
+      }
+    });
+  }
+}
+
+// File handling
+class FileManager {
+  constructor(appState, tableManager) {
+    this.appState = appState;
+    this.tableManager = tableManager;
+  }
+
+  initialize() {
+    const uploadBtn = document.querySelector(SELECTORS.uploadButton);
+    const downloadBtn = document.querySelector(SELECTORS.downloadJsonButton);
+    const fileInput = document.querySelector(SELECTORS.jsonFileInput);
+
+    if (uploadBtn && fileInput) {
+      uploadBtn.addEventListener("click", () => fileInput.click());
+    }
+
+    if (fileInput) {
+      fileInput.addEventListener("change", (event) => this.handleFileUpload(event));
+    }
+
+    if (downloadBtn) {
+      downloadBtn.addEventListener("click", () => this.downloadData());
+    }
+  }
+
+  async handleFileUpload(event) {
+    try {
+      NotificationManager.showLoading('Loading file...');
+      const data = await this.appState.fileHandler.handleFileUpload(event.target.files[0]);
+      this.tableManager.displayData(data);
+      const jsonOutput = document.querySelector(SELECTORS.jsonOutput);
+      if (jsonOutput) jsonOutput.style.display = "none";
+      NotificationManager.hideLoading();
+      NotificationManager.show(`Successfully loaded ${data.length} items`, 'success');
+    } catch (error) {
+      NotificationManager.hideLoading();
+      NotificationManager.show('Error: ' + error.message, 'error');
+      const jsonOutput = document.querySelector(SELECTORS.jsonOutput);
+      if (jsonOutput) jsonOutput.textContent = error.message;
+    }
+  }
+
+  downloadData() {
+    this.appState.fileHandler.downloadCurrentData('edited.json');
+  }
+}
+
+// Settings modal management
+class SettingsModalManager {
+  constructor(appState, tableManager) {
+    this.appState = appState;
+    this.tableManager = tableManager;
+    this.settingsManager = new SettingsManager(appState);
+    this.settingsModal = document.querySelector(SELECTORS.settingsModal);
+  }
+
+  initialize() {
+    const settingsBtn = document.querySelector(SELECTORS.settingsButton);
+    const saveBtn = document.querySelector(SELECTORS.saveSettings);
+    const closeBtn = this.settingsModal?.querySelector(".close");
+
+    if (settingsBtn) {
+      settingsBtn.addEventListener("click", () => this.openModal());
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => this.closeModal());
+    }
+
+    if (saveBtn) {
+      saveBtn.addEventListener("click", () => this.saveSettings());
+    }
+  }
+
+  openModal() {
+    if (this.settingsModal) this.settingsModal.style.display = "block";
+  }
+
+  closeModal() {
+    if (this.settingsModal) this.settingsModal.style.display = "none";
+  }
+
+  saveSettings() {
+    this.settingsManager.save();
+    this.closeModal();
+    
+    // Refresh table with new settings
+    const cachedData = this.appState.fileHandler.loadCachedData();
+    if (cachedData && cachedData.data) {
+      this.tableManager.displayData(cachedData.data);
+    }
+  }
+}
+
+// Dropdown management
+class DropdownManager {
+  static initialize() {
+    window.toggleDropdown = function() {
+      const dropdown = document.querySelector(SELECTORS.myDropdown);
+      if (dropdown) dropdown.classList.toggle("show");
+    };
+
+    window.onclick = function(event) {
+      if (!event.target.matches(".dropbtn")) {
+        const dropdowns = document.getElementsByClassName("dropdown-content");
+        for (let dropdown of dropdowns) {
+          if (dropdown.classList.contains("show")) {
+            dropdown.classList.remove("show");
+          }
+        }
+      }
+    };
+  }
+}
+
+// Main application class
+class InventoryApp {
+  constructor() {
+    this.appState = new AppState();
+    this.tableManager = new TableManager(this.appState);
+    this.searchManager = new SearchManager(this.appState, this.tableManager);
+    this.qrScannerManager = new QRScannerManager(this.appState, this.tableManager, this.searchManager);
+    this.fileManager = new FileManager(this.appState, this.tableManager);
+    this.settingsModalManager = new SettingsModalManager(this.appState, this.tableManager);
+  }
+
+  async initialize() {
+    // Check for required dependencies
+    if (!Html5Qrcode) {
+      console.error("Html5Qrcode is not loaded");
+      return;
+    }
+
+    // Initialize managers
+    this.settingsModalManager.settingsManager.initialize();
+    this.searchManager.initialize();
+    this.qrScannerManager.initialize();
+    this.fileManager.initialize();
+    this.settingsModalManager.initialize();
+    DropdownManager.initialize();
+
+    // Initialize modal handler
+    this.appState.modalHandler = new ModalHandler(
+      'modal',
+      'editForm',
+      '.close',
+      'saveChangesButton',
+      (formData) => this.handleFormSubmit(formData)
+    );
+
+    // Load and display cached data
+    const cachedData = this.appState.fileHandler.loadCachedData();
+    if (cachedData && cachedData.data) {
+      this.tableManager.displayData(cachedData.data);
+    }
+  }
+
+  handleFormSubmit(formData) {
+    const item = this.appState.fileHandler.findItemByQRCode(formData.get('qr_code'));
+    if (item) {
+      // Validate form data before applying changes
+      const validation = this.validateFormData(formData);
+      if (!validation.valid) {
+        alert('Validation Error: ' + validation.errors.join('\n'));
+        return;
+      }
+
+      for (const [key, value] of formData.entries()) {
+        item[key] = this.parseFormValue(key, value, item[key]);
+      }
+      this.appState.fileHandler.saveToCache();
+      this.tableManager.displayData(this.appState.fileHandler.getData());
+    }
+  }
+
+  validateFormData(formData) {
+    const errors = [];
+    
+    for (const [key, value] of formData.entries()) {
+      // Validate stock fields are non-negative
+      if (key === 'current_stock' || key === 'expected_stock') {
+        const numValue = parseInt(value);
+        if (isNaN(numValue)) {
+          errors.push(`${key} must be a number`);
+        } else if (numValue < 0) {
+          errors.push(`${key} cannot be negative`);
+        }
+      }
+      
+      // Validate date fields are valid dates
+      if (key.includes('date') || key.includes('timestamp')) {
+        const dateValue = new Date(value);
+        if (isNaN(dateValue.getTime())) {
+          errors.push(`${key} must be a valid date`);
+        }
+      }
+      
+      // Validate required fields
+      if (!value || value.trim() === '') {
+        if (['qr_code', 'item_name', 'location'].includes(key)) {
+          errors.push(`${key} is required`);
+        }
+      }
+    }
+    
+    return {
+      valid: errors.length === 0,
+      errors: errors
+    };
+  }
+
+  parseFormValue(key, value, originalValue) {
+    if (key.includes('date') || key.includes('timestamp')) {
+      return new Date(value).toISOString();
+    } else if (typeof originalValue === 'number') {
+      return Math.max(0, parseInt(value)); // Ensure non-negative
+    } else {
+      return value;
+    }
+  }
+}
+
+// Initialize application when DOM is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    const app = new InventoryApp();
+    app.initialize();
+  } catch (error) {
+    console.error('Failed to initialize application:', error);
+    // Display user-friendly error message
+    const errorContainer = document.getElementById('appContainer') || document.body;
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = 'padding: 20px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px; margin: 20px;';
+    errorDiv.innerHTML = '<strong>Error:</strong> Failed to initialize application. Please refresh the page. If the problem persists, clear your browser cache.';
+    errorContainer.prepend(errorDiv);
+  }
+});

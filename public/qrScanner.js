@@ -29,14 +29,19 @@ export class QRScanner {
           onSuccess,
           this.handleError
         );
-      } catch {
+      } catch (rearError) {
         // If rear camera fails, try front camera
-        await this.scanner.start(
-          { facingMode: "user" },
-          config,
-          onSuccess,
-          this.handleError
-        );
+        try {
+          await this.scanner.start(
+            { facingMode: "user" },
+            config,
+            onSuccess,
+            this.handleError
+          );
+        } catch (frontError) {
+          // Both cameras failed, throw detailed error
+          throw new Error(`Camera initialization failed. Rear: ${rearError.message}, Front: ${frontError.message}`);
+        }
       }
     } catch (err) {
       console.error("Error initializing scanner:", err);

@@ -20,10 +20,25 @@ export class FileHandler {
           const jsonContent = e.target.result;
           const parsedData = JSON.parse(jsonContent);
           this.inventoryData = parsedData.inventory || [];
-          localStorage.setItem(this.cachedDataKey, JSON.stringify(this.inventoryData));
+          
+          // Validate data has expected structure
+          if (!Array.isArray(this.inventoryData)) {
+            reject(new Error('Invalid data format: inventory must be an array'));
+            return;
+          }
+          
+          try {
+            localStorage.setItem(this.cachedDataKey, JSON.stringify(this.inventoryData));
+          } catch (storageError) {
+            if (storageError.name === 'QuotaExceededError') {
+              reject(new Error('Storage quota exceeded. Please clear some data.'));
+              return;
+            }
+            throw storageError;
+          }
           resolve(this.inventoryData);
         } catch (error) {
-          reject(new Error('Invalid JSON file'));
+          reject(new Error('Invalid JSON file: ' + error.message));
         }
       };
 

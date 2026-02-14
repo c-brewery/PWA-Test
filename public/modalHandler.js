@@ -38,9 +38,29 @@ export class ModalHandler {
 
   populateForm(data) {
     for (const [key, value] of Object.entries(data)) {
+      // Sanitize key to prevent XSS
+      if (!this.isSafeKey(key)) {
+        console.warn(`Skipping unsafe key: ${key}`);
+        continue;
+      }
       const inputContainer = this.createInputContainer(key, value);
       this.form.appendChild(inputContainer);
     }
+  }
+
+  isSafeKey(key) {
+    // Only allow alphanumeric, underscore, and dash characters
+    return /^[a-zA-Z0-9_-]+$/.test(key);
+  }
+
+  sanitizeValue(value) {
+    // If value is a string, escape HTML entities
+    if (typeof value === 'string') {
+      const div = document.createElement('div');
+      div.textContent = value;
+      return div.innerHTML;
+    }
+    return value;
   }
 
   createInputContainer(key, value) {
@@ -78,9 +98,18 @@ export class ModalHandler {
       input.value = isNaN(dateValue.getTime()) || key === 'last_updated' 
         ? new Date().toISOString().slice(0, 16) 
         : dateValue.toISOString().slice(0, 16);
+    } else if (key === 'current_stock' || key === 'expected_stock') {
+      input.type = 'number';
+      input.min = '0';
+      input.value = Math.max(0, parseInt(value) || 0);
     } else {
       input.type = typeof value === 'number' ? 'number' : 'text';
-      input.value = value;
+      // Use textContent for safe value assignment
+      if (typeof value === 'string') {
+        input.value = this.sanitizeValue(value);
+      } else {
+        input.value = value;
+      }
     }
 
     input.disabled = ['qr_code', 'last_updated', 'expected_stock'].includes(key);

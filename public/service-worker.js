@@ -39,5 +39,11 @@ self.addEventListener('fetch', event => {
       .then(response => {
         return response || fetch(event.request);
       })
+      .catch(error => {
+        // Network is down and no cache available
+        console.error('Fetch failed; offline?', error);
+        // Return offline page if available
+        return caches.match('/index.html');
+      })
   );
 });
