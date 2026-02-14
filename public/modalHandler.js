@@ -3,8 +3,8 @@ export class ModalHandler {
     this.modal = document.getElementById(modalId);
     this.form = document.getElementById(formId);
     this.closeButton = this.modal.querySelector(closeButtonSelector);
-    this.saveButton = document.getElementById(saveButtonId);
-    this.cancelButton = document.getElementById('cancelButton');
+    this.saveIcon = document.getElementById('saveIcon');
+    this.closeIcon = document.getElementById('closeIcon');
     this.modalTitle = document.getElementById('modalTitle');
     this.onSave = onSave;
     this.columnDisplayNames = columnDisplayNames;
@@ -21,7 +21,7 @@ export class ModalHandler {
     };
 
     addEventListeners(this.closeButton, () => this.hide());
-    addEventListeners(this.cancelButton, () => this.hide());
+    addEventListeners(this.closeIcon, () => this.hide());
 
     window.addEventListener('click', (event) => {
       if (event.target === this.modal) {
@@ -35,8 +35,8 @@ export class ModalHandler {
       }
     });
 
-    if (this.saveButton && this.onSave) {
-      addEventListeners(this.saveButton, () => {
+    if (this.saveIcon && this.onSave) {
+      addEventListeners(this.saveIcon, () => {
         const formData = new FormData(this.form);
         this.onSave(formData);
         this.hide();
@@ -71,19 +71,60 @@ export class ModalHandler {
   }
 
   populateForm(data) {
-    for (const [key, value] of Object.entries(data)) {
-      // Skip qr_code as it's already added as a hidden field
-      if (key === 'qr_code') {
-        continue;
-      }
+    // Define which fields should be paired side-by-side
+    const fieldPairs = [
+      ['category', 'location'],  // Kategorie and Standort side-by-side
+      ['expected_stock', 'current_stock'],  // Erwarteter Bestand and Aktueller Bestand side-by-side
+    ];
+    
+    const pairedFields = new Set();
+    fieldPairs.forEach(pair => pair.forEach(field => pairedFields.add(field)));
+
+    // Track processed fields
+    const processedFields = new Set(['qr_code']); // qr_code is added as hidden field
+
+    // First, create paired fields
+    fieldPairs.forEach(([field1, field2]) => {
+      const value1 = data[field1];
+      const value2 = data[field2];
       
-      // Sanitize key to prevent XSS
-      if (!this.isSafeKey(key)) {
-        console.warn(`Skipping unsafe key: ${key}`);
-        continue;
+      if (value1 !== undefined || value2 !== undefined) {
+        const pairContainer = document.createElement('div');
+        pairContainer.className = 'input-row-pair';
+        
+        if (value1 !== undefined && !processedFields.has(field1)) {
+          const container1 = this.createInputContainer(field1, value1);
+          container1.className = 'input-container input-container-half';
+          pairContainer.appendChild(container1);
+          processedFields.add(field1);
+        } else if (value1 !== undefined) {
+          const spacer = document.createElement('div');
+          spacer.className = 'input-container input-container-half';
+          pairContainer.appendChild(spacer);
+        }
+        
+        if (value2 !== undefined && !processedFields.has(field2)) {
+          const container2 = this.createInputContainer(field2, value2);
+          container2.className = 'input-container input-container-half';
+          pairContainer.appendChild(container2);
+          processedFields.add(field2);
+        }
+        
+        this.form.appendChild(pairContainer);
       }
-      const inputContainer = this.createInputContainer(key, value);
-      this.form.appendChild(inputContainer);
+    });
+
+    // Then, create remaining single fields
+    for (const [key, value] of Object.entries(data)) {
+      if (!processedFields.has(key)) {
+        if (!this.isSafeKey(key)) {
+          console.warn(`Skipping unsafe key: ${key}`);
+          continue;
+        }
+        const inputContainer = this.createInputContainer(key, value);
+        this.form.appendChild(inputContainer);
+        processedFields.add(key);
+      }
     }
   }
 
@@ -107,8 +148,12 @@ export class ModalHandler {
     container.className = 'input-container';
 
     const label = document.createElement('label');
-    // Use translated name from columnDisplayNames, fallback to key
-    label.textContent = this.columnDisplayNames[key] || key;
+    const displayName = this.columnDisplayNames[key] || key;
+    label.textContent = displayName;
+    // Set title for truncated labels to show full text on hover
+    if (displayName.length > 20) {
+      label.title = displayName;
+    }
     container.appendChild(label);
 
     const inputWrapper = document.createElement('div');
@@ -117,15 +162,22 @@ export class ModalHandler {
     const input = this.createInput(key, value);
     inputWrapper.appendChild(input);
 
+    // For current_stock, add +/- buttons beside the input
     if (key === 'current_stock') {
-      inputWrapper.appendChild(this.createStockButton('-', () => {
+      const stockControls = document.createElement('div');
+      stockControls.className = 'stock-controls';
+      
+      stockControls.appendChild(this.createStockButton('-', () => {
         const currentVal = parseInt(input.value) || 0;
         input.value = Math.max(0, currentVal - 1);
       }));
-      inputWrapper.appendChild(this.createStockButton('+', () => {
+      
+      stockControls.appendChild(this.createStockButton('+', () => {
         const currentVal = parseInt(input.value) || 0;
         input.value = currentVal + 1;
       }));
+      
+      inputWrapper.appendChild(stockControls);
     }
 
     container.appendChild(inputWrapper);
@@ -139,7 +191,7 @@ export class ModalHandler {
     if (key.includes('date') || key.includes('timestamp')) {
       input.type = 'datetime-local';
       const dateValue = new Date(value);
-      input.value = isNaN(dateValue.getTime()) || key === 'last_updated' 
+      input.value = isNaN(dateValue.getTime())
         ? new Date().toISOString().slice(0, 16) 
         : dateValue.toISOString().slice(0, 16);
     } else if (key === 'current_stock' || key === 'expected_stock') {
@@ -156,7 +208,8 @@ export class ModalHandler {
       }
     }
 
-    input.disabled = ['qr_code', 'last_updated', 'expected_stock'].includes(key);
+    // Only disable expected_stock and qr_code; enable last_updated for editing
+    input.disabled = ['qr_code', 'expected_stock'].includes(key);
     input.style.flex = '1';
     return input;
   }

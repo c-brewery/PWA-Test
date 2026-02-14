@@ -123,7 +123,8 @@ const COLUMN_DISPLAY_NAMES = {
   category: "Kategorie",
   current_stock: "Aktueller Bestand",
   expected_stock: "Erwarteter Bestand",
-  stock_last_updated: "Letzte Inventur"
+  stock_last_updated: "Letzte Inventur",
+  last_updated: "Zuletzt aktualisiert"
 };
 
 const SEARCHABLE_COLUMNS = ["qr_code", "name", "location"];
