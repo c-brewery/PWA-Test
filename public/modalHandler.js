@@ -42,6 +42,17 @@ export class ModalHandler {
 
   show(data) {
     this.form.innerHTML = '';
+    
+    // Add hidden field for QR code so it's included in FormData
+    if (data.qr_code) {
+      const hiddenInput = document.createElement('input');
+      hiddenInput.type = 'hidden';
+      hiddenInput.name = 'qr_code';
+      hiddenInput.value = data.qr_code;
+      this.form.appendChild(hiddenInput);
+      console.log("Added hidden qr_code field:", data.qr_code);
+    }
+    
     this.populateForm(data);
     this.modal.style.display = 'block';
   }
@@ -52,6 +63,11 @@ export class ModalHandler {
 
   populateForm(data) {
     for (const [key, value] of Object.entries(data)) {
+      // Skip qr_code as it's already added as a hidden field
+      if (key === 'qr_code') {
+        continue;
+      }
+      
       // Sanitize key to prevent XSS
       if (!this.isSafeKey(key)) {
         console.warn(`Skipping unsafe key: ${key}`);

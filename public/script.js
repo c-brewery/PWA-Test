@@ -754,7 +754,22 @@ class InventoryApp {
   }
 
   handleFormSubmit(formData) {
-    const item = this.appState.fileHandler.findItemByQRCode(formData.get('qr_code'));
+    const qrCode = formData.get('qr_code');
+    console.log("=== SAVE FORM SUBMIT ===");
+    console.log("QR Code from form:", qrCode);
+    console.log("FormData entries:", Array.from(formData.keys()));
+    console.log("Current inventory data length:", this.appState.fileHandler.getData().length);
+    
+    if (!qrCode) {
+      console.error("❌ ERROR: QR Code not in form data!");
+      alert("Error: Missing QR code in form");
+      return;
+    }
+    
+    const item = this.appState.fileHandler.findItemByQRCode(qrCode);
+    console.log("Found item:", item);
+    console.log("Item is in array:", item ? this.appState.fileHandler.getData().includes(item) : false);
+    
     if (item) {
       // Validate form data before applying changes
       const validation = this.validateFormData(formData);
@@ -763,11 +778,24 @@ class InventoryApp {
         return;
       }
 
+      console.log("Validation passed, updating item...");
+      const oldItem = JSON.stringify(item); // Save original for comparison
+      
       for (const [key, value] of formData.entries()) {
-        item[key] = this.parseFormValue(key, value, item[key]);
+        if (key === 'qr_code') continue; // Skip qr_code, don't modify it
+        const parsedValue = this.parseFormValue(key, value, item[key]);
+        console.log(`  ${key}: "${item[key]}" → "${parsedValue}"`);
+        item[key] = parsedValue;
       }
+      
+      console.log("Item after update:", item);
+      console.log("Item changed:", oldItem !== JSON.stringify(item));
+      
       this.appState.fileHandler.saveToCache();
+      console.log("Data saved to localStorage");
       this.tableManager.displayData(this.appState.fileHandler.getData());
+    } else {
+      console.error("❌ ERROR: Item not found with QR Code:", qrCode);
     }
   }
 

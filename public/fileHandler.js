@@ -51,22 +51,41 @@ export class FileHandler {
     const lastLoadedFile = localStorage.getItem(this.lastLoadedFileKey);
     const cachedData = localStorage.getItem(this.cachedDataKey);
     
+    console.log("=== LOADING CACHED DATA ON STARTUP ===");
+    console.log("Last loaded file:", lastLoadedFile);
+    console.log("Cached data exists:", !!cachedData);
+    
     if (lastLoadedFile && cachedData) {
       try {
         this.inventoryData = JSON.parse(cachedData);
+        console.log("✅ Loaded cached inventory with", this.inventoryData.length, "items");
         return {
           fileName: lastLoadedFile,
           data: this.inventoryData
         };
       } catch (error) {
-        console.error('Error parsing cached data:', error);
+        console.error('❌ Error parsing cached data:', error);
       }
+    } else {
+      console.log("ℹ️ No cached data found - starting fresh");
     }
     return null;
   }
 
   saveToCache() {
-    localStorage.setItem(this.cachedDataKey, JSON.stringify(this.inventoryData));
+    try {
+      const jsonString = JSON.stringify(this.inventoryData);
+      localStorage.setItem(this.cachedDataKey, jsonString);
+      console.log("✅ Data saved to localStorage");
+      console.log("   Key:", this.cachedDataKey);
+      console.log("   Size:", jsonString.length, "bytes");
+      console.log("   Items:", this.inventoryData.length);
+    } catch (error) {
+      console.error("❌ Error saving to localStorage:", error);
+      if (error.name === 'QuotaExceededError') {
+        console.error("Storage quota exceeded!");
+      }
+    }
   }
 
   downloadCurrentData(filename = 'inventory.json') {
