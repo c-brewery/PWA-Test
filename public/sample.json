@@ -1,0 +1,32 @@
+[
+  {
+    "qr_code": "QR001",
+    "name": "Laptop",
+    "location": "Desk A",
+    "description": "Dell Laptop",
+    "category": "Electronics",
+    "current_stock": 5,
+    "expected_stock": 5,
+    "stock_last_updated": "2024-02-14T10:00:00"
+  },
+  {
+    "qr_code": "QR002",
+    "name": "Monitor",
+    "location": "Desk B",
+    "description": "27 inch Monitor",
+    "category": "Electronics",
+    "current_stock": 3,
+    "expected_stock": 5,
+    "stock_last_updated": "2024-02-14T09:00:00"
+  },
+  {
+    "qr_code": "QR003",
+    "name": "Keyboard",
+    "location": "Storage",
+    "description": "Mechanical Keyboard",
+    "category": "Accessories",
+    "current_stock": 10,
+    "expected_stock": 10,
+    "stock_last_updated": "2024-02-14T11:00:00"
+  }
+]

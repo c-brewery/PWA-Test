@@ -2,10 +2,19 @@
 function toggleNavbar() {
   const myLinks = document.getElementById("myLinks");
   if (myLinks) {
-    if (myLinks.style.display === "block") {
-      myLinks.style.display = "none";
-    } else {
-      myLinks.style.display = "block";
-    }
+    myLinks.classList.toggle("show");
   }
 }
+
+// Close menu when clicking on a link
+document.addEventListener("DOMContentLoaded", function() {
+  const myLinks = document.getElementById("myLinks");
+  if (myLinks) {
+    const links = myLinks.querySelectorAll("a");
+    links.forEach(link => {
+      link.addEventListener("click", function() {
+        myLinks.classList.remove("show");
+      });
+    });
+  }
+});

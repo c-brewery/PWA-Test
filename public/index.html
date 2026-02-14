@@ -31,8 +31,15 @@
     </div>
   <main>
     <div id="content">
+      <div style="margin-bottom: 30px; text-align: center;">
+        <h1 style="margin: 20px 0 10px 0; color: #333; font-size: 28px;">📦 Inventory Helper</h1>
+        <p style="margin: 0 0 20px 0; color: #666; font-size: 14px;">Manage your inventory efficiently with QR codes</p>
+      </div>
       <input type="file" id="jsonFileInput" accept=".json" style="display:none;" />
       <button id="openQrScanner" class="button"><i class="fa fa-fw fa-qrcode"></i> Open QR Scanner</button>
+      <button id="uploadButton" class="button" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"><i class="fa fa-fw fa-upload"></i> Load file</button>
+      <button id="downloadJsonButton" class="button" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"><i class="fa fa-fw fa-download"></i> Download</button>
+      <button id="settingsButton" class="button" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);"><i class="fa fa-fw fa-cog"></i> Settings</button>
       <div class="search-container">
         <i class="fa fa-search search-icon"></i>
         <input type="text" id="qrCodeResult" class="search-input" placeholder="Suche nach QR-Code, Name oder Standort..." />

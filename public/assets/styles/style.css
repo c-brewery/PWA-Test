@@ -1,8 +1,9 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: #f5f5f5;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   color: #333;
+  min-height: 100vh;
 }
 
 header {
@@ -17,10 +18,17 @@ header {
 main {
   padding: 20px;
   text-align: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+#content > .button {
+  display: inline-flex;
+  margin: 8px 6px;
 }
 
 button {
-  background-color: #007aff;
+  background-color: #667eea;
   border: none;
   color: white;
   padding: 12px 16px;
@@ -31,11 +39,14 @@ button {
   margin: 8px 2px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 button:hover {
-  background-color: #005bb5;
+  background-color: #764ba2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 #jsonOutput, #qrCodeResult {
@@ -70,23 +81,46 @@ button:hover {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.4);
+  background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease;
   transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .modal-content {
   background-color: #fefefe;
   margin: 10% auto;
-  padding: 15px;
-  border: 1px solid #888;
+  padding: 25px;
+  border: none;
   width: 90%;
   max-width: 500px;
-  border-radius: 10px;
+  border-radius: 12px;
   transform: translateZ(0);
   will-change: transform;
   box-sizing: border-box;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 #qrScannerModal .modal-content {
@@ -94,7 +128,7 @@ button:hover {
   transition: none;
   width: 90%;
   max-width: 350px;
-  padding: 10px;
+  padding: 15px;
 }
 
 .close {
@@ -103,43 +137,63 @@ button:hover {
   font-size: 28px;
   font-weight: bold;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
 .close:hover,
 .close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
+  color: #667eea;
 }
 
 .input-container {
-  margin-bottom: 15px;
+  margin-bottom: 16px;
+  text-align: left;
 }
 
 .input-wrapper {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
 
 .input-container label {
   display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
 }
 
 .input-container input {
   flex: 1;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 10px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.input-container input:focus {
+  outline: none;
+  border-color: #667eea;
 }
 
 .stock-button {
   width: 40px;
-  height: 30px;
+  height: 36px;
   padding: 0;
-  margin: 0 5px;
+  margin: 0 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.stock-button:hover {
+  transform: scale(1.05);
 }
 
 #buttonContainer {
@@ -161,35 +215,37 @@ button:hover {
 .sortable-table {
   width: 100%;
   border-collapse: collapse;
-  margin: 20px 0;
+  margin: 25px 0;
   background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
   overflow: hidden;
 }
 
 .sortable-table th, 
 .sortable-table td {
-  padding: 12px;
+  padding: 14px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .sortable-table th {
-  background-color: #f5f5f5;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   cursor: pointer;
   user-select: none;
-  font-weight: bold;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
 }
 
 .sortable-table th:hover {
-  background-color: #e5e5e5;
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
 }
 
 .sort-icon {
   font-size: 0.8em;
   margin-left: 5px;
-  color: #666;
+  opacity: 0.7;
 }
 
 .sortable-table tr:nth-child(even) {
@@ -198,15 +254,16 @@ button:hover {
 
 .sortable-table tr {
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.sortable-table tr:hover {
-  background-color: #e0e0e0;
+.sortable-table tbody tr:hover {
+  background-color: #f0f0f0;
+  box-shadow: inset 0 0 4px rgba(102, 126, 234, 0.2);
 }
 
 .scanned-row {
-  background-color: #b3e0ff !important;
+  background-color: #c8e6c9 !important;
   animation: highlight-fade 2s;
 }
 
@@ -215,26 +272,31 @@ button:hover {
     background-color: #4CAF50;
   }
   to {
-    background-color: #b3e0ff;
+    background-color: #c8e6c9;
   }
 }
 
 .button {
-  padding: 8px 16px;
-  margin: 8px 0;
-  background-color: #4CAF50;
+  padding: 10px 18px;
+  margin: 8px 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 14px;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
 .button:hover {
-  background-color: #45a049;
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .button i {
@@ -243,9 +305,10 @@ button:hover {
 
 /* Navigation styles */
 .topnav {
-  background-color: #333;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   overflow: hidden;
   position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .topnav a {
@@ -253,7 +316,8 @@ button:hover {
   padding: 14px 16px;
   text-decoration: none;
   font-size: 17px;
-  display: block;
+  display: inline-block;
+  transition: background-color 0.3s ease;
 }
 
 .topnav a.icon {
@@ -261,52 +325,84 @@ button:hover {
 }
 
 .topnav a:hover {
-  background-color: #ddd;
-  color: black;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .topnav a.active {
-  background-color: #4CAF50;
+  background-color: rgba(255, 255, 255, 0.3);
   color: white;
+  font-weight: 600;
 }
 
 /* Hide the links inside the navigation menu (except for logo/home) */
 .topnav #myLinks {
-  display: none;
+  display: inline-flex;
+  gap: 0;
+}
+
+.topnav #myLinks a {
+  display: inline-block;
 }
 
 /* Style the hamburger menu */
 .topnav a.icon {
-  background: black;
-  display: block;
+  background: rgba(0, 0, 0, 0.2);
+  display: none;
   position: absolute;
   right: 0;
   top: 0;
 }
 
 /* Add a grey background color on mouse-over */
-.topnav a:hover {
-  background-color: #ddd;
-  color: black;
+.topnav a.icon:hover {
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 /* Style the active link (or home/logo) */
 .active {
-  background-color: #4CAF50;
+  background-color: transparent;
   color: white;
 }
 
 @media screen and (max-width: 600px) {
+  /* Show hamburger menu on mobile */
+  .topnav a.icon {
+    display: block !important;
+  }
+
+  /* Hide menu items by default on mobile */
+  .topnav #myLinks {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    width: 100%;
+    z-index: 999;
+  }
+
+  .topnav #myLinks a {
+    display: block;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .topnav #myLinks.show {
+    display: flex;
+  }
+
   .modal-content {
     width: 92%;
     margin: 3% auto;
-    padding: 12px;
+    padding: 20px;
   }
 
   #qrScannerModal .modal-content {
     width: 92%;
     margin: 2% auto;
-    padding: 8px;
+    padding: 12px;
   }
 
   #reader {
@@ -318,9 +414,9 @@ button:hover {
 
   .button {
     width: auto;
-    margin: 4px 0;
-    padding: 8px 12px;
-    font-size: 13px;
+    margin: 6px 4px;
+    padding: 10px 14px;
+    font-size: 14px;
   }
 
   button {
@@ -341,7 +437,7 @@ button:hover {
   }
 
   .input-container input {
-    padding: 6px;
+    padding: 8px;
     font-size: 14px;
   }
 
@@ -350,62 +446,117 @@ button:hover {
     height: 28px;
     margin: 0 3px;
   }
+
+  .settings-section {
+    padding: 12px;
+    margin-bottom: 15px;
+  }
+
+  .checkbox-group {
+    margin-bottom: 8px;
+  }
+
+  .checkbox-group input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+  }
+
+  .search-container {
+    margin: 15px auto;
+  }
+
+  .search-input {
+    padding: 12px 36px;
+    font-size: 14px;
+    height: 44px;
+  }
+
+  .search-icon {
+    left: 12px;
+    font-size: 14px;
+  }
+
+  .clear-button {
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+  }
+
+  .clear-button i {
+    font-size: 14px;
+  }
+
+  .sortable-table th, 
+  .sortable-table td {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .sort-icon {
+    font-size: 0.7em;
+  }
 }
 
 .settings-section {
   margin-bottom: 20px;
-  padding: 15px;
-  background-color: #f9f9f9;
+  padding: 16px;
+  background-color: #f8f9ff;
+  border-left: 4px solid #667eea;
   border-radius: 8px;
 }
 
 .settings-section h3 {
   margin-top: 0;
   margin-bottom: 15px;
-  color: #333;
+  color: #667eea;
   font-size: 16px;
+  font-weight: 600;
 }
 
 .checkbox-group {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .checkbox-group input[type="checkbox"] {
-  margin-right: 10px;
+  margin-right: 12px;
   width: 18px;
   height: 18px;
   cursor: pointer;
+  accent-color: #667eea;
 }
 
 .checkbox-group label {
   cursor: pointer;
   user-select: none;
+  font-size: 15px;
 }
 
 .checkbox-group input[type="checkbox"]:disabled + label {
-  color: #666;
+  color: #999;
   font-style: italic;
 }
 
 #saveSettings {
   width: 100%;
   margin-top: 15px;
-  background-color: #4CAF50;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-weight: 600;
 }
 
 #saveSettings:hover {
-  background-color: #45a049;
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
 }
 
 /* Highlight discrepancies */
 .stock-discrepancy {
-  background-color: #ffebee !important;
+  background-color: #ffcdd2 !important;
 }
 
 .stock-discrepancy td {
   color: #d32f2f;
+  font-weight: 500;
 }
 
 /* Timestamp formatting */
@@ -431,7 +582,7 @@ button:hover {
 
 .search-container {
   position: relative;
-  margin: 20px auto;
+  margin: 25px auto;
   max-width: 600px;
   width: 100%;
   display: flex;
@@ -440,27 +591,30 @@ button:hover {
 
 .search-input {
   width: 100%;
-  padding: 12px 36px;
+  padding: 14px 40px;
   font-size: 16px;
-  border: 2px solid #ddd;
-  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
   box-sizing: border-box;
-  transition: border-color 0.3s ease;
-  height: 44px;
+  transition: all 0.3s ease;
+  height: 48px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #4CAF50;
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   top: 50%;
-  color: #666;
+  transform: translateY(-50%);
+  color: #999;
   font-size: 16px;
-  line-height: 1;
   pointer-events: none;
 }
 
@@ -468,24 +622,24 @@ button:hover {
   position: absolute;
   right: 8px;
   top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
-  color: #666;
+  color: #999;
   cursor: pointer;
   padding: 8px;
   margin: 0;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .clear-button i {
   font-size: 16px;
-  line-height: 1;
 }
 
 .clear-button:hover {
@@ -496,6 +650,21 @@ button:hover {
 /* Hide empty rows when filtering */
 .row-hidden {
   display: none;
+}
+
+/* Empty state message */
+#noResultsMessage {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-size: 16px;
+}
+
+#noResultsMessage i {
+  font-size: 48px;
+  color: #ddd;
+  display: block;
+  margin-bottom: 15px;
 }
 
 @media screen and (max-width: 600px) {
@@ -523,4 +692,23 @@ button:hover {
   .clear-button i {
     font-size: 14px;
   }
+}
+
+#saveChangesButton {
+  width: 100%;
+  margin-top: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#saveChangesButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
 }
