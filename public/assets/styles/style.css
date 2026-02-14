@@ -41,6 +41,10 @@ button {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 button:hover {
@@ -138,6 +142,10 @@ button:hover {
   font-weight: bold;
   cursor: pointer;
   transition: color 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .close:hover,
@@ -236,6 +244,8 @@ button:hover {
   user-select: none;
   font-weight: 600;
   transition: background-color 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .sortable-table th:hover {
@@ -255,6 +265,8 @@ button:hover {
 .sortable-table tr {
   cursor: pointer;
   transition: all 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .sortable-table tbody tr:hover {
@@ -318,6 +330,10 @@ button:hover {
   font-size: 17px;
   display: inline-block;
   transition: background-color 0.3s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .topnav a.icon {

@@ -2,6 +2,25 @@ import { QRScanner } from "./qrScanner.js";
 import { FileHandler } from "./fileHandler.js";
 import { ModalHandler } from "./modalHandler.js";
 
+// Helper function to add touch and click support for Android compatibility
+function addClickListener(element, callback) {
+  if (!element) return;
+  
+  // Add click event
+  element.addEventListener("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    callback();
+  });
+  
+  // Add touchend as fallback for Android devices
+  element.addEventListener("touchend", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    callback();
+  });
+}
+
 // Notification/Toast System
 class NotificationManager {
   static show(message, type = 'info', duration = 3000) {
@@ -127,14 +146,14 @@ const DEFAULT_SETTINGS = {
 
 // DOM element selectors
 const SELECTORS = {
-  uploadButton: "#uploadButton",
-  downloadJsonButton: "#downloadJsonButton",
+  uploadButton: "#content button#uploadButton",
+  downloadJsonButton: "#content button#downloadJsonButton",
   jsonFileInput: "#jsonFileInput",
   qrScannerModal: "#qrScannerModal",
   openQrScanner: "#openQrScanner",
   closeQrScanner: "#closeQrScanner",
   reopenScannerButton: "#reopenScannerButton",
-  settingsButton: "#settingsButton",
+  settingsButton: "#content button#settingsButton",
   settingsModal: "#settingsModal",
   saveSettings: "#saveSettings",
   searchInput: "#qrCodeResult",
@@ -288,7 +307,10 @@ class TableManager {
         
         // Re-attach click handler
         row.onclick = null;
-        row.addEventListener("click", () => this.handleRowClick(item, newData));
+        // Remove old event listeners by cloning node
+        const newRow = row.cloneNode(true);
+        row.parentNode.replaceChild(newRow, row);
+        addClickListener(newRow, () => this.handleRowClick(item, newData));
       } else {
         // Add new row
         const row = this.createTableRow(item, highlightQrCode);
@@ -331,9 +353,9 @@ class TableManager {
     const rowHtml = this.buildRowHtml(item);
     row.innerHTML = rowHtml;
 
-    // Add click handler
+    // Add click handler with touch support
     row.style.cursor = "pointer";
-    row.addEventListener("click", () => this.handleRowClick(item, this.currentData));
+    addClickListener(row, () => this.handleRowClick(item, this.currentData));
 
     return row;
   }
@@ -492,7 +514,7 @@ class SearchManager {
       this.clearButton.style.display = searchTerm ? "block" : "none";
     });
 
-    this.clearButton.addEventListener("click", () => {
+    addClickListener(this.clearButton, () => {
       this.searchInput.value = "";
       this.tableManager.filter("");
       this.clearButton.style.display = "none";
@@ -528,9 +550,9 @@ class QRScannerManager {
     const closeBtn = document.querySelector(SELECTORS.closeQrScanner);
     const reopenBtn = document.querySelector(SELECTORS.reopenScannerButton);
 
-    if (openBtn) openBtn.addEventListener("click", () => this.openScanner());
-    if (closeBtn) closeBtn.addEventListener("click", () => this.closeScanner());
-    if (reopenBtn) reopenBtn.addEventListener("click", () => this.reopenScanner());
+    addClickListener(openBtn, () => this.openScanner());
+    addClickListener(closeBtn, () => this.closeScanner());
+    addClickListener(reopenBtn, () => this.reopenScanner());
   }
 
   async openScanner() {
@@ -598,17 +620,13 @@ class FileManager {
     const downloadBtn = document.querySelector(SELECTORS.downloadJsonButton);
     const fileInput = document.querySelector(SELECTORS.jsonFileInput);
 
-    if (uploadBtn && fileInput) {
-      uploadBtn.addEventListener("click", () => fileInput.click());
-    }
+    addClickListener(uploadBtn, () => fileInput?.click());
 
     if (fileInput) {
       fileInput.addEventListener("change", (event) => this.handleFileUpload(event));
     }
 
-    if (downloadBtn) {
-      downloadBtn.addEventListener("click", () => this.downloadData());
-    }
+    addClickListener(downloadBtn, () => this.downloadData());
   }
 
   async handleFileUpload(event) {
@@ -647,17 +665,9 @@ class SettingsModalManager {
     const saveBtn = document.querySelector(SELECTORS.saveSettings);
     const closeBtn = this.settingsModal?.querySelector(".close");
 
-    if (settingsBtn) {
-      settingsBtn.addEventListener("click", () => this.openModal());
-    }
-
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => this.closeModal());
-    }
-
-    if (saveBtn) {
-      saveBtn.addEventListener("click", () => this.saveSettings());
-    }
+    addClickListener(settingsBtn, () => this.openModal());
+    addClickListener(closeBtn, () => this.closeModal());
+    addClickListener(saveBtn, () => this.saveSettings());
   }
 
   openModal() {

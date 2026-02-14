@@ -10,19 +10,33 @@ export class ModalHandler {
   }
 
   setupEventListeners() {
-    this.closeButton.onclick = () => this.hide();
+    // Helper function for cross-browser click/touch support
+    const addEventListeners = (element, callback) => {
+      if (!element) return;
+      element.addEventListener('click', callback);
+      element.addEventListener('touchend', callback);
+    };
+
+    addEventListeners(this.closeButton, () => this.hide());
+    
     window.addEventListener('click', (event) => {
       if (event.target === this.modal) {
         this.hide();
       }
     });
 
+    window.addEventListener('touchend', (event) => {
+      if (event.target === this.modal) {
+        this.hide();
+      }
+    });
+
     if (this.saveButton && this.onSave) {
-      this.saveButton.onclick = () => {
+      addEventListeners(this.saveButton, () => {
         const formData = new FormData(this.form);
         this.onSave(formData);
         this.hide();
-      };
+      });
     }
   }
 
@@ -122,7 +136,20 @@ export class ModalHandler {
     button.type = 'button';
     button.textContent = text;
     button.className = 'stock-button';
-    button.onclick = onClick;
+    
+    // Add both click and touchend event listeners for Android compatibility
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClick();
+    });
+    
+    button.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClick();
+    });
+    
     return button;
   }
 }

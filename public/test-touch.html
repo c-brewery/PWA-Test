@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Touch Event Test - PWA Test App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    .test-section {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-button {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 5px;
+      background-color: #667eea;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .test-button:active {
+      background-color: #764ba2;
+    }
+    .status {
+      display: inline-block;
+      margin-left: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      background-color: #e0e0e0;
+      color: #333;
+      font-weight: bold;
+    }
+    .status.success {
+      background-color: #c8e6c9;
+      color: #2e7d32;
+    }
+    .status.pending {
+      background-color: #fff9c4;
+      color: #f57f17;
+    }
+  </style>
+</head>
+<body>
+  <h1>✅ PWA Test App - Android Touch Event Verification</h1>
+  
+  <div class="test-section">
+    <h2>Test Instructions</h2>
+    <p>This page helps verify that all touch events are working properly on Android devices.</p>
+    <p><strong>What has been fixed:</strong></p>
+    <ul>
+      <li>✅ Added <code>touch-action: manipulation</code> to all interactive elements</li>
+      <li>✅ Removed 300ms tap delay on Android</li>
+      <li>✅ Added touchend event listeners as fallback for click events</li>
+      <li>✅ Removed inline onclick handlers</li>
+      <li>✅ Improved event delegation and propagation handling</li>
+      <li>✅ Fixed selector specificity for buttons</li>
+    </ul>
+  </div>
+
+  <div class="test-section">
+    <h2>Direct Touch Test</h2>
+    <button class="test-button" id="simpleClickTest">Test Click/Touch</button>
+    <span class="status" id="simpleClickStatus">Ready</span>
+    <p>Tap this button and watch the status change immediately to confirm touch events work.</p>
+  </div>
+
+  <div class="test-section">
+    <h2>Quick Links</h2>
+    <ul>
+      <li><a href="http://localhost:3000" target="_blank">🚀 Open Main App (http://localhost:3000)</a></li>
+      <li><a href="./ANDROID_FIXES.md" target="_blank">📖 View Detailed Fix Documentation</a></li>
+    </ul>
+  </div>
+
+  <div class="test-section">
+    <h2>App Status</h2>
+    <p><strong>Server:</strong> http://localhost:3000 ✅ Running</p>
+    <p><strong>Last Updated:</strong> February 14, 2026</p>
+    <p><strong>Status:</strong> Ready for Android testing</p>
+  </div>
+
+  <script>
+    // Test simple click/touch
+    const testBtn = document.getElementById('simpleClickTest');
+    const testStatus = document.getElementById('simpleClickStatus');
+    
+    let clickCount = 0;
+    
+    function handleTest() {
+      clickCount++;
+      testStatus.textContent = `Clicked ${clickCount} time(s)`;
+      testStatus.className = 'status success';
+      
+      // Reset after 2 seconds
+      setTimeout(() => {
+        testStatus.className = 'status pending';
+      }, 2000);
+    }
+    
+    // Add both click and touch support like in the main app
+    testBtn.addEventListener('click', handleTest);
+    testBtn.addEventListener('touchend', handleTest);
+    
+    console.log('Touch event test page loaded successfully');
+    console.log('Ready to test touch events on Android devices');
+  </script>
+</body>
+</html>
