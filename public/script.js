@@ -742,7 +742,7 @@ class InventoryApp {
     this.appState.modalHandler = new ModalHandler(
       'modal',
       'editForm',
-      '.close',
+      '.modal-close',
       'saveChangesButton',
       (formData) => this.handleFormSubmit(formData),
       COLUMN_DISPLAY_NAMES

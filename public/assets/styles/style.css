@@ -230,6 +230,28 @@ button:hover {
   min-height: 32px;
 }
 
+/* Header left/right containers for save/close positioning */
+.modal-header-left,
+.modal-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Close icon inside header (not the absolute .close used elsewhere) */
+.modal-close {
+  font-size: 20px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: color 0.2s ease, background-color 0.15s ease;
+}
+.modal-close:hover {
+  background-color: rgba(255,255,255,0.15);
+  color: #fff;
+}
+
 .modal-icon:hover {
   background-color: rgba(255, 255, 255, 0.2);
   transform: scale(1.1);
