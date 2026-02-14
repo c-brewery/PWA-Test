@@ -1,6 +1,6 @@
 {
-  "name": "PWA Test",
-  "short_name": "PWA",
+  "name": "InventoryApp",
+  "short_name": "InventoryApp",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#ffffff",

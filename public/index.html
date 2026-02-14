@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PWA Test</title>
+  <title>InventoryApp</title>
   <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="assets/styles/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -11,7 +11,7 @@
   <link rel="shortcut icon" href="assets/icons/icon-192x192.png">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="PWA Example">
+  <meta name="apple-mobile-web-app-title" content="InventoryApp">
   <link rel="apple-touch-icon" href="assets/icons/icon-152x152.png">
   <meta name="msapplication-TileImage" content="assets/icons/icon-144x144.png">
   <meta name="msapplication-TileColor" content="#ffffff">
@@ -19,16 +19,6 @@
   <script src="html5-qrcode.min.js"></script>
 </head>
 <body>
-
-    <div class="topnav">
-      <a href="#home" class="active">Inventory helper</a>
-      <div id="myLinks">
-        <a href="#upload" id="navUploadButton"><i class="fa fa-fw fa-upload"></i> Load file</a>
-        <a href="#download" id="navDownloadButton"><i class="fa fa-fw fa-download"></i> Download file</a>
-        <a href="#settings" id="navSettingsButton"><i class="fa fa-fw fa-cog"></i> Einstellungen</a>
-      </div>
-      <a href="javascript:void(0);" class="icon" id="toggleNavbarButton"><i class="fa fa-bars"></i></a>
-    </div>
   <main>
     <div id="content">
       <div style="margin-bottom: 30px; text-align: center;">
@@ -63,19 +53,18 @@
   </main>
   <div id="modal" class="modal">
     <div class="modal-content">
+      <span class="close">&times;</span>
       <div class="modal-header">
-        <div class="modal-header-left">
-          <span class="modal-icon save" id="saveIcon" title="Speichern">💾</span>
-        </div>
         <h2 id="modalTitle">Item bearbeiten</h2>
-        <div class="modal-header-right">
-          <span class="modal-icon modal-close" id="closeIcon" title="Schließen">✖</span>
-        </div>
       </div>
       <div class="modal-body">
         <form id="editForm">
           <!-- Form fields will be dynamically generated -->
         </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="cancelButton">Abbrechen</button>
+        <button type="button" id="saveChangesButton">Speichern</button>
       </div>
     </div>
   </div>
