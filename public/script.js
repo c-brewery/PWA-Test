@@ -808,18 +808,6 @@ class InventoryApp {
   }
 }
 
-// Toggle hamburger menu
-function toggleNavbar() {
-  const myLinks = document.getElementById("myLinks");
-  if (myLinks) {
-    if (myLinks.style.display === "block") {
-      myLinks.style.display = "none";
-    } else {
-      myLinks.style.display = "block";
-    }
-  }
-}
-
 // Initialize application when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
   try {
