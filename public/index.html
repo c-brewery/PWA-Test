@@ -64,10 +64,18 @@
   <div id="modal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <form id="editForm">
-        <!-- Form fields will be dynamically generated -->
-      </form>
-      <button type="button" id="saveChangesButton">Save Changes</button>
+      <div class="modal-header">
+        <h2 id="modalTitle">Item bearbeiten</h2>
+      </div>
+      <div class="modal-body">
+        <form id="editForm">
+          <!-- Form fields will be dynamically generated -->
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="cancelButton">Abbrechen</button>
+        <button type="button" id="saveChangesButton">Speichern</button>
+      </div>
     </div>
   </div>
   <div id="qrScannerModal" class="modal">

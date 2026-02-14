@@ -1,10 +1,13 @@
 export class ModalHandler {
-  constructor(modalId, formId, closeButtonSelector, saveButtonId, onSave) {
+  constructor(modalId, formId, closeButtonSelector, saveButtonId, onSave, columnDisplayNames = {}) {
     this.modal = document.getElementById(modalId);
     this.form = document.getElementById(formId);
     this.closeButton = this.modal.querySelector(closeButtonSelector);
     this.saveButton = document.getElementById(saveButtonId);
+    this.cancelButton = document.getElementById('cancelButton');
+    this.modalTitle = document.getElementById('modalTitle');
     this.onSave = onSave;
+    this.columnDisplayNames = columnDisplayNames;
 
     this.setupEventListeners();
   }
@@ -18,7 +21,8 @@ export class ModalHandler {
     };
 
     addEventListeners(this.closeButton, () => this.hide());
-    
+    addEventListeners(this.cancelButton, () => this.hide());
+
     window.addEventListener('click', (event) => {
       if (event.target === this.modal) {
         this.hide();
@@ -42,7 +46,13 @@ export class ModalHandler {
 
   show(data) {
     this.form.innerHTML = '';
-    
+    this.currentData = data;
+
+    // Set the modal title to show the item name
+    if (data.name && this.modalTitle) {
+      this.modalTitle.textContent = `${data.name} bearbeiten`;
+    }
+
     // Add hidden field for QR code so it's included in FormData
     if (data.qr_code) {
       const hiddenInput = document.createElement('input');
@@ -50,9 +60,8 @@ export class ModalHandler {
       hiddenInput.name = 'qr_code';
       hiddenInput.value = data.qr_code;
       this.form.appendChild(hiddenInput);
-      console.log("Added hidden qr_code field:", data.qr_code);
     }
-    
+
     this.populateForm(data);
     this.modal.style.display = 'block';
   }
@@ -98,20 +107,25 @@ export class ModalHandler {
     container.className = 'input-container';
 
     const label = document.createElement('label');
-    label.textContent = key;
+    // Use translated name from columnDisplayNames, fallback to key
+    label.textContent = this.columnDisplayNames[key] || key;
     container.appendChild(label);
 
     const inputWrapper = document.createElement('div');
     inputWrapper.className = 'input-wrapper';
-    inputWrapper.style.display = 'flex';
-    inputWrapper.style.alignItems = 'center';
 
     const input = this.createInput(key, value);
     inputWrapper.appendChild(input);
 
     if (key === 'current_stock') {
-      inputWrapper.appendChild(this.createStockButton('+', () => input.value = parseInt(input.value) + 1));
-      inputWrapper.appendChild(this.createStockButton('-', () => input.value = parseInt(input.value) - 1));
+      inputWrapper.appendChild(this.createStockButton('-', () => {
+        const currentVal = parseInt(input.value) || 0;
+        input.value = Math.max(0, currentVal - 1);
+      }));
+      inputWrapper.appendChild(this.createStockButton('+', () => {
+        const currentVal = parseInt(input.value) || 0;
+        input.value = currentVal + 1;
+      }));
     }
 
     container.appendChild(inputWrapper);

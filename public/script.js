@@ -743,7 +743,8 @@ class InventoryApp {
       'editForm',
       '.close',
       'saveChangesButton',
-      (formData) => this.handleFormSubmit(formData)
+      (formData) => this.handleFormSubmit(formData),
+      COLUMN_DISPLAY_NAMES
     );
 
     // Load and display cached data

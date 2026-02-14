@@ -104,7 +104,7 @@ button:hover {
 .modal-content {
   background-color: #fefefe;
   margin: 10% auto;
-  padding: 25px;
+  padding: 0;
   border: none;
   width: 90%;
   max-width: 500px;
@@ -114,6 +114,8 @@ button:hover {
   box-sizing: border-box;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   animation: slideIn 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes slideIn {
@@ -137,7 +139,9 @@ button:hover {
 
 .close {
   color: #aaa;
-  float: right;
+  position: absolute;
+  top: 15px;
+  right: 20px;
   font-size: 28px;
   font-weight: bold;
   cursor: pointer;
@@ -153,8 +157,39 @@ button:hover {
   color: #667eea;
 }
 
+.modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 25px;
+  position: relative;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 25px;
+  flex: 1;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.modal-footer {
+  padding: 15px 25px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  background-color: #f9f9f9;
+  border-radius: 0 0 12px 12px;
+}
+
 .input-container {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   text-align: left;
 }
 
@@ -166,29 +201,42 @@ button:hover {
 
 .input-container label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-weight: 600;
   font-size: 14px;
   color: #333;
+  text-transform: capitalize;
 }
 
 .input-container input {
   flex: 1;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border: 2px solid #e0e0e0;
   border-radius: 6px;
   font-size: 14px;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.input-container input:hover {
+  border-color: #d0d0d0;
 }
 
 .input-container input:focus {
   outline: none;
   border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.input-container input:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
 }
 
 .stock-button {
   width: 40px;
-  height: 36px;
+  height: 40px;
   padding: 0;
   margin: 0 4px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -196,12 +244,60 @@ button:hover {
   color: white;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: 600;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .stock-button:hover {
-  transform: scale(1.05);
+  transform: scale(1.08);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+.stock-button:active {
+  transform: scale(0.96);
+}
+
+#saveChangesButton,
+#cancelButton {
+  padding: 11px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#saveChangesButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  min-width: 100px;
+}
+
+#saveChangesButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+#saveChangesButton:active {
+  transform: translateY(0);
+}
+
+#cancelButton {
+  background-color: #f0f0f0;
+  color: #333;
+  min-width: 80px;
+}
+
+#cancelButton:hover {
+  background-color: #e8e8e8;
 }
 
 #buttonContainer {
@@ -417,7 +513,28 @@ button:hover {
   .modal-content {
     width: 92%;
     margin: 3% auto;
+    padding: 0;
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+  }
+
+  .modal-body {
     padding: 20px;
+    max-height: 55vh;
+  }
+
+  .modal-footer {
+    padding: 12px 20px;
+    gap: 8px;
+  }
+
+  #saveChangesButton,
+  #cancelButton {
+    padding: 10px 16px;
+    font-size: 13px;
+    min-width: none;
   }
 
   #qrScannerModal .modal-content {
@@ -454,18 +571,18 @@ button:hover {
   }
 
   .input-container {
-    margin-bottom: 10px;
+    margin-bottom: 16px;
   }
 
   .input-container input {
-    padding: 8px;
+    padding: 10px 12px;
     font-size: 14px;
   }
 
   .stock-button {
-    width: 32px;
-    height: 28px;
-    margin: 0 3px;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
   }
 
   .settings-section {
